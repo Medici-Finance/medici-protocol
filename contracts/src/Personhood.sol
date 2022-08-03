@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import { ByteHasher } from "./helpers/ByteHasher.sol";
-import { IWorldID } from "world-id-contracts/interfaces/IWorldID.sol";
+import { IWorldID } from "./interfaces/IWorldID.sol";
 
 contract Personhood {
     using ByteHasher for bytes;

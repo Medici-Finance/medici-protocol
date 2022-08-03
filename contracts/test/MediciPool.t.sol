@@ -5,21 +5,16 @@ import { Test } from 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 import 'forge-std/vm.sol';
 
-import { Semaphore } from 'world-id-contracts/Semaphore.sol';
-
-import { TypeConverter } from './utils/TypeConverter.sol';
-
+import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
 import { ERC20Mintable } from '../src/helpers/ERC20Mintable.sol';
 import { Borrower } from '../src/MediciPool.sol';
 import { MediciToken } from '../src/MediciToken.sol';
 import { MediciPool } from '../src/MediciPool.sol';
 import { Personhood } from '../src/Personhood.sol';
 
-contract MediciPoolTest is Test {
-    using TypeConverter for address;
 
-    uint256 internal groupId;
-    Semaphore internal semaphore;
+
+contract MediciPoolTest is Test, InteractsWithWorldID {
     Personhood internal ph;
     Vm internal hevm = Vm(HEVM_ADDRESS);
 
@@ -35,35 +30,12 @@ contract MediciPoolTest is Test {
         usdc.mint(address(this), 1000e18);
         usdc.mint(address(1), 1000e18);
 
-        groupId = 1;
-        ph = new Personhood(semaphore);
+        setUpWorldID();
+        ph = new Personhood(worldID);
 
         pool = new MediciPool(address(mici), address(ph));
         pool.setUSDCAddress(address(usdc));
         usdc.approve(address(pool), type(uint256).max);
-    }
-
-    function genIdentityCommitment() internal returns (uint256) {
-        string[] memory ffiArgs = new string[](2);
-        ffiArgs[0] = "node";
-        ffiArgs[1] = "test/scripts/generate-commitment.js";
-
-        bytes memory returnData = hevm.ffi(ffiArgs);
-        console.log("iden commit = ", abi.decode(returnData, (uint256)));
-        return abi.decode(returnData, (uint256));
-    }
-
-    function genProof() internal returns (uint256, uint256[8] memory proof) {
-        string[] memory ffiArgs = new string[](5);
-        ffiArgs[0] = 'node';
-        ffiArgs[1] = '--no-warnings';
-        ffiArgs[2] = 'test/scripts/generate-proof.js';
-        ffiArgs[3] = address(ph).toString();
-        ffiArgs[4] = address(1).toString();
-
-        bytes memory returnData = hevm.ffi(ffiArgs);
-
-        return abi.decode(returnData, (uint256, uint256[8]));
     }
 
     function testInitPool() public {
@@ -79,14 +51,19 @@ contract MediciPoolTest is Test {
     }
 
     function testCheckNewBorrower() public {
+        registerIdentity(); // this simulates a World ID "verified" identity
+
         console.log("woRKS1");
-        semaphore.createGroup(groupId, 20, 0);
-        console.log("woRKS");
-        semaphore.addMember(groupId, genIdentityCommitment());
-
-        (uint256 nullifierHash, uint256[8] memory proof) = genProof();
-
-        ph.checkNewBorrower(address(1), semaphore.getRoot(groupId),nullifierHash, proof);
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            address(this)
+        );
+        ph.checkNewBorrower(
+            address(this),
+            getRoot(),
+            nullifierHash,
+            proof
+        );
         assertTrue(ph.checkAlreadyVerified(address(1)));
     }
 
