@@ -53,13 +53,13 @@ contract MediciPoolTest is Test, InteractsWithWorldID {
     function testCheckNewBorrower() public {
         registerIdentity(); // this simulates a World ID "verified" identity
 
-        console.log("woRKS1");
         (uint256 nullifierHash, uint256[8] memory proof) = getProof(
             address(ph),
-            address(this)
+            address(1)
         );
+
         ph.checkNewBorrower(
-            address(this),
+            address(1),
             getRoot(),
             nullifierHash,
             proof

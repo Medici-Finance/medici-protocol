@@ -56,12 +56,13 @@ contract Personhood {
             groupId,
             abi.encodePacked(borrower).hashToField(),
             nullifierHash,
-            abi.encodePacked(_actionID).hashToField(),
+            abi.encodePacked(address(this)).hashToField(),
             proof
         );
 
         // recording new user signup
         nullifierHashes[nullifierHash] = borrower;
+        addressVerified[borrower] = true;
         return true;
     }
 
