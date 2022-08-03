@@ -12,7 +12,7 @@ contract Personhood {
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Thrown when attempting to reuse a nullifier
-    error InvalidNullifier(address borrower);
+    error InvalidNullifier();
 
     /// @dev The World ID instance that will be used for verifying proofs
     IWorldID internal immutable worldId;
@@ -48,7 +48,7 @@ contract Personhood {
         // make sure person hasn't already signed up using a different address
         if (nullifierHashes[nullifierHash] != address(0)
         && nullifierHashes[nullifierHash] != borrower)
-            revert InvalidNullifier(borrower);
+            revert InvalidNullifier();
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
