@@ -176,7 +176,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         assertEq(currentlyApproved, 0);
     }
 
-    function Withdraw() public {
+    function testWithdraw() public {
         pool.deposit(1000e18);
 
         verifyBorrower(adele);
