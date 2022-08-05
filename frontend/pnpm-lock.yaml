@@ -10,7 +10,7 @@ specifiers:
   '@ethersproject/abi': ^5.0.0
   '@ethersproject/bytes': ^5.0.0
   '@ethersproject/providers': ^5.0.0
-  '@rainbow-me/rainbowkit': ^0.3.4
+  '@rainbow-me/rainbowkit': ^0.4.0
   '@typechain/ethers-v5': ^10.1.0
   '@types/react': ^18.0.14
   '@types/react-dom': ^18.0.5
@@ -29,10 +29,12 @@ specifiers:
   react-icons: ^4.4.0
   react-is: '>=16.8.0'
   react-router-dom: ^6.3.0
+  react-tracked: ^1.7.9
+  scheduler: ^0.23.0
   tailwindcss: ^3.1.4
   typechain: ^8.1.0
   typescript: ^4.7.4
-  wagmi: ^0.4.12
+  wagmi: ^0.5.0
 
 dependencies:
   '@babel/core': 7.18.6
@@ -44,7 +46,7 @@ dependencies:
   '@ethersproject/abi': 5.6.4
   '@ethersproject/bytes': 5.6.1
   '@ethersproject/providers': 5.6.8
-  '@rainbow-me/rainbowkit': 0.3.4_ksvpodatviltilqty4m7gcxati
+  '@rainbow-me/rainbowkit': 0.4.5_aidhxifz2f4jkrbc3byd2n456a
   '@typechain/ethers-v5': 10.1.0_3a2z4xo3ofaclmnvqkkolsxa2u
   '@types/react': 18.0.14
   '@types/react-dom': 18.0.5
@@ -60,9 +62,11 @@ dependencies:
   react-icons: 4.4.0_react@18.2.0
   react-is: 16.13.1
   react-router-dom: 6.3.0_biqbaboplfbrettd7655fr4n2y
+  react-tracked: 1.7.9_2szjah6qrhd6fr2kgr64p4pjgm
+  scheduler: 0.23.0
   tailwindcss: 3.1.4
   typechain: 8.1.0_typescript@4.7.4
-  wagmi: 0.4.12_vl6iscrdodirx4c7oizvb5wpzu
+  wagmi: 0.5.12_vl6iscrdodirx4c7oizvb5wpzu
 
 devDependencies:
   '@typescript-eslint/parser': 5.29.0_b5e7v2qnwxfo6hmiq56u52mz3e
@@ -2843,14 +2847,14 @@ packages:
     resolution: {integrity: sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==}
     dev: false
 
-  /@rainbow-me/rainbowkit/0.3.4_ksvpodatviltilqty4m7gcxati:
-    resolution: {integrity: sha512-kMcqEPKnfKjZpjo4D5TE2mSWzG7phH02H3Zfi08s9Nk2DoULGSaD5qk3P/LHEOaEKsaTqwszhepMf6NuFfrHZg==}
+  /@rainbow-me/rainbowkit/0.4.5_aidhxifz2f4jkrbc3byd2n456a:
+    resolution: {integrity: sha512-9JikVOkkaK41T3a1Tg8VK1h92QDJsC9Fk7vSkEmNI99gM9MKRdbsrHyRwM1Z1U/0I/PnYAi8CvShfjwfNw5jAg==}
     engines: {node: '>=12.4'}
     peerDependencies:
       ethers: '>=5.5.1'
       react: '>=17'
       react-dom: '>=17'
-      wagmi: ^0.4.7
+      wagmi: 0.5.x || 0.6.x
     dependencies:
       '@vanilla-extract/css': 1.7.0
       '@vanilla-extract/dynamic': 2.0.2
@@ -2861,7 +2865,7 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-remove-scroll: 2.5.4_luyos4mouogwq6z3wafb3re4ce
-      wagmi: 0.4.12_vl6iscrdodirx4c7oizvb5wpzu
+      wagmi: 0.5.12_vl6iscrdodirx4c7oizvb5wpzu
     transitivePeerDependencies:
       - '@types/react'
     dev: false
@@ -3113,10 +3117,10 @@ packages:
       '@vanilla-extract/css': 1.7.0
     dev: false
 
-  /@wagmi/core/0.3.8_2ocw4wf2kb3i6lf4ct7nhauhqu:
-    resolution: {integrity: sha512-9wsd8YGW2ivjFwpkgAETn7cRbKOAddZz91vuh2VmIP2bWGiDuFA6RXy5/KLV/tGpvIIiCyGFO0JXpx+n4hFhgQ==}
+  /@wagmi/core/0.4.9_2ocw4wf2kb3i6lf4ct7nhauhqu:
+    resolution: {integrity: sha512-V/1PgetbA0PcIT6FJxDnCwRU/MZhecHVu1/7+QMncdxUQykyDd8MGlx0b8EjitMLLqzuD9kcx7sQpfS0gk5rZg==}
     peerDependencies:
-      '@coinbase/wallet-sdk': '>=3.2.0'
+      '@coinbase/wallet-sdk': '>=3.3.0'
       '@walletconnect/ethereum-provider': '>=1.7.5'
       ethers: '>=5.5.1'
     peerDependenciesMeta:
@@ -6649,6 +6653,10 @@ packages:
     dev: false
     optional: true
 
+  /proxy-compare/2.1.0:
+    resolution: {integrity: sha512-wapJ3h/w8fRSyPEG0y2WMV+tf9xwvj3nxM6aHVuPEOwKs/t5xLSKZb44ubNTiqq2T6lmEMHEWGMTaU2L6ddaFA==}
+    dev: false
+
   /pseudomap/1.0.2:
     resolution: {integrity: sha512-b/YwNhb8lk1Zz2+bXXpS/LK9OisiZZ1SNsSLxN1x2OXVEhW2Ckr/7mWE5vrC1ZTiJlD9g19jWszTmJsB+oEpFQ==}
     dev: false
@@ -6922,6 +6930,26 @@ packages:
       invariant: 2.2.4
       react: 18.2.0
       tslib: 2.4.0
+    dev: false
+
+  /react-tracked/1.7.9_2szjah6qrhd6fr2kgr64p4pjgm:
+    resolution: {integrity: sha512-axBJegjdQbsHizZ0DtEpM4g3sDW1SF5mq9j9bk77mRbcFR+OeBR4vLAqO7E6/DOPeGdDDqLBBIFBy5tmjnOd+A==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      scheduler: '>=0.19.0'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+    dependencies:
+      proxy-compare: 2.1.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      scheduler: 0.23.0
+      use-context-selector: 1.3.10_2szjah6qrhd6fr2kgr64p4pjgm
     dev: false
 
   /react/18.2.0:
@@ -7826,6 +7854,24 @@ packages:
       tslib: 2.4.0
     dev: false
 
+  /use-context-selector/1.3.10_2szjah6qrhd6fr2kgr64p4pjgm:
+    resolution: {integrity: sha512-xprS9YQ0F56IPTOjev+Lm+TWZD7Pa20+slBeaClt4YtOOoHKFOF3A9Cfr7LDcX2QIZ9VTyxXCnA6/WhL4Cm47g==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      scheduler: '>=0.19.0'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      scheduler: 0.23.0
+    dev: false
+
   /use-sidecar/1.1.2_luyos4mouogwq6z3wafb3re4ce:
     resolution: {integrity: sha512-epTbsLuzZ7lPClpz2TyryBfztm7m+28DlEv2ZCQ3MDr5ssiwyOwGH/e5F9CkfWjJ1t4clvI58yF822/GUkjjhw==}
     engines: {node: '>=10'}
@@ -7888,14 +7934,14 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /wagmi/0.4.12_vl6iscrdodirx4c7oizvb5wpzu:
-    resolution: {integrity: sha512-YfpRAJyGL9YvtecYDf6cUT6yaIBksHK9JZyq3WlVMUfeTleFmsqCiIaIaKhlPcE+NZxSsUHz1jbZw8KLWTcwvA==}
+  /wagmi/0.5.12_vl6iscrdodirx4c7oizvb5wpzu:
+    resolution: {integrity: sha512-Y7eGKYhgNw6fohiXBE4uak/lotfgB+KaANqok16ORqwBFV+zaByMYWCrOIYlk1/6ngSyW1dcSVCU8djjh+RNtg==}
     peerDependencies:
       ethers: '>=5.5.1'
       react: '>=17.0.0'
     dependencies:
       '@coinbase/wallet-sdk': 3.3.0_@babel+core@7.18.6
-      '@wagmi/core': 0.3.8_2ocw4wf2kb3i6lf4ct7nhauhqu
+      '@wagmi/core': 0.4.9_2ocw4wf2kb3i6lf4ct7nhauhqu
       '@walletconnect/ethereum-provider': 1.7.8
       ethers: 5.6.9
       react: 18.2.0

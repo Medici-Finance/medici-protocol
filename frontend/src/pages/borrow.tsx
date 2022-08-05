@@ -4,6 +4,7 @@ import worldId from '@worldcoin/id';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import {
+    useAccount,
     useContractRead,
     useContractWrite,
     useWaitForTransaction,
@@ -41,6 +42,7 @@ const WorldCoinButton: React.FC = () => {
 };
 
 function Borrow() {
+    const { walletAddress, isConnected } = useAccount();
     const [worldIDProof, setWorldIDProof] =
         React.useState<VerificationResponse | null>(null);
     const [borrowLimit, setBorrowLimit] = useState(0);
@@ -83,8 +85,21 @@ function Borrow() {
         setUpWorldId();
     });
 
+    useEffect(() => {
+        if (isConnected) console.log('Connected to ', walletAddress);
+    }, [isConnected]);
+
+    if (isConnected) console.log('Connected to ', walletAddress);
+    else console.log('Not connected');
+
     return (
         <>{worldId.isEnabled() ? <BorrowDashboard /> : <WorldCoinButton />}</>
+        // {walletAddress && (
+        //           <WorldIDComponent
+        //             signal={walletAddress}
+        //             setProof={(proof) => setWorldIDProof(proof)}
+        //           />
+        //         )}
     );
 }
 
