@@ -6,11 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
-make: *** No rule to make target `all'.  Stop.
 
-
-# Make data base, printed on Sat Jul 30 21:54:19 2022
+# Make data base, printed on Fri Aug  5 11:40:52 2022
 
 # Variables
 
@@ -53,7 +50,7 @@ PNPM_HOME = /Users/kunalarora/Library/pnpm
 # environment
 NVM_BIN = /Users/kunalarora/.nvm/versions/node/v16.15.1/bin
 # environment
-LaunchInstanceID = 49C49481-227D-4A0F-BA14-A5300649080E
+LaunchInstanceID = 31F5A53E-A9AF-4DCC-B601-522B076D4EF7
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
@@ -63,11 +60,11 @@ ANDROID_HOME = /Users/kunalarora/Library/Android/sdk
 # environment
 PROXIMA_PACKAGE_TOKEN = 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
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.PwXs4sBg3C/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.XMDTjHf3EB/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
-DISPLAY = /private/tmp/com.apple.launchd.UIWE02dUpz/org.macosforge.xquartz:0
+DISPLAY = /private/tmp/com.apple.launchd.lNQQCrldzi/org.macosforge.xquartz:0
 # environment
 CONDA_EXE = /Users/kunalarora/opt/anaconda3/bin/conda
 # environment
@@ -83,7 +80,7 @@ MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
 VSCODE_CLI = 1
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/kunalarora/Library/Application Support/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
+VSCODE_CODE_CACHE_PATH = /Users/kunalarora/Library/Application Support/Code/CachedData/da76f93349a72022ca4670c1b84860304616aaa2
 # environment
 LOGNAME = kunalarora
 # environment
@@ -121,7 +118,7 @@ USER = kunalarora
 # default
 MAKECMDGOALS := all
 # environment
-TERM_SESSION_ID = w1t0p0:F2B08CAB-816E-4873-AD24-FC89CE2A85CC
+TERM_SESSION_ID = w1t0p0:93D1CEB2-E2B4-41B9-9755-F3DA7009B5F1
 # environment
 CLASSPATH = :/junit4.13.jar:.
 # environment
@@ -141,7 +138,7 @@ TMPDIR = /var/folders/qk/kkxv8xk901d3n4n2r0gcx_5h0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/kunalarora/Library/Application Support/Code/1.69.2-main.sock
+VSCODE_IPC_HOOK = /Users/kunalarora/Library/Application Support/Code/1.70.0-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -155,7 +152,7 @@ TERM_PROGRAM_VERSION = 3.4.16
 # environment
 NVM_DIR = /Users/kunalarora/.nvm
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.154046926.154046933.4EBDC0FC-4DC0-4C77-8228-C9177080DFDD
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.154046926.154046933.C581B086-0733-4C5F-997E-529A747C4716
 # environment
 LC_TERMINAL_VERSION = 3.4.16
 # automatic
@@ -163,7 +160,7 @@ LC_TERMINAL_VERSION = 3.4.16
 # automatic
 +F = $(notdir $+)
 # environment
-ITERM_SESSION_ID = w1t0p0:F2B08CAB-816E-4873-AD24-FC89CE2A85CC
+ITERM_SESSION_ID = w1t0p0:93D1CEB2-E2B4-41B9-9755-F3DA7009B5F1
 # environment
 COLORFGBG = 15;0
 # environment
@@ -183,7 +180,7 @@ LC_ALL = C
 # environment
 CONDA_PYTHON_EXE = /Users/kunalarora/opt/anaconda3/bin/python
 # environment
-SECURITYSESSIONID = 186c1
+SECURITYSESSIONID = 186a6
 # automatic
 ^F = $(notdir $^)
 # default
@@ -199,7 +196,7 @@ CONDA_PREFIX = /Users/kunalarora/opt/anaconda3
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 43836
+VSCODE_PID = 45778
 # environment
 _CE_CONDA = 
 # environment
@@ -213,7 +210,7 @@ LANG = C
 
 # Directories
 
-# . (device 16777221, inode 147646462): 12 files, no impossibilities.
+# . (device 16777222, inode 147646462): 12 files, no impossibilities.
 
 # 12 files, no impossibilities in 1 directories.
 
@@ -283,10 +280,13 @@ GNUmakefile:
 # No general (`VPATH' variable) search path.
 
 # # of strings in strcache: 0
+ 
+make: *** No rule to make target `all'.  Stop.
+
 # # of strcache buffers: 0
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sat Jul 30 21:54:19 2022
+# Finished Make data base on Fri Aug  5 11:40:52 2022
 
  

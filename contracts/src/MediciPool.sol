@@ -293,15 +293,15 @@ contract MediciPool is Ownable, ReentrancyGuard {
      * Internal Functions
      *************************************************************************/
 
-    function getReputation() public returns (uint256) {
+    function getReputation() public view returns (uint256) {
         return 200;
     }
 
-    function getBorrowLimit(uint256 _reputation) public returns (uint256) {
+    function getBorrowLimit(uint256 _reputation) public view returns (uint256) {
         return 1000e18;
     }
 
-    function getApprovalLimit(uint256 _reputation) public returns (uint256) {
+    function getApprovalLimit(uint256 _reputation) public view returns (uint256) {
         return 1000e18;
     }
 
@@ -333,7 +333,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         return Math.mulDiv(_amt, lendingRateAPR * _durationDays, 10**18 * 365);
     }
 
-    function checkDefault(uint256 _loanId) public returns (bool) {
+    function checkDefault(uint256 _loanId) public view returns (bool) {
         Loan memory _loan = loans[_loanId];
         if (_loan.startTime + getTimePeriod() < block.timestamp) {
             return true;

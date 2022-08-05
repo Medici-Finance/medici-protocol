@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import { ByteHasher } from "./helpers/ByteHasher.sol";
-import { IWorldID } from "world-id-contracts/interfaces/IWorldID.sol";
+import { IWorldID } from "./interfaces/IWorldID.sol";
 
 contract Personhood {
     using ByteHasher for bytes;
@@ -12,7 +12,7 @@ contract Personhood {
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Thrown when attempting to reuse a nullifier
-    error InvalidNullifier(address borrower);
+    error InvalidNullifier();
 
     /// @dev The World ID instance that will be used for verifying proofs
     IWorldID internal immutable worldId;
@@ -48,7 +48,7 @@ contract Personhood {
         // make sure person hasn't already signed up using a different address
         if (nullifierHashes[nullifierHash] != address(0)
         && nullifierHashes[nullifierHash] != borrower)
-            revert InvalidNullifier(borrower);
+            revert InvalidNullifier();
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -56,12 +56,13 @@ contract Personhood {
             groupId,
             abi.encodePacked(borrower).hashToField(),
             nullifierHash,
-            abi.encodePacked(_actionID).hashToField(),
+            abi.encodePacked(address(this)).hashToField(),
             proof
         );
 
         // recording new user signup
         nullifierHashes[nullifierHash] = borrower;
+        addressVerified[borrower] = true;
         return true;
     }
 

@@ -1,25 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { Test } from 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 import 'forge-std/vm.sol';
 
-import { Semaphore } from 'world-id-contracts/Semaphore.sol';
-
-import { TypeConverter } from './utils/TypeConverter.sol';
-
+import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
 import { ERC20Mintable } from '../src/helpers/ERC20Mintable.sol';
 import { Borrower } from '../src/MediciPool.sol';
 import { MediciToken } from '../src/MediciToken.sol';
 import { MediciPool } from '../src/MediciPool.sol';
 import { Personhood } from '../src/Personhood.sol';
+import { BaseTest } from '../src/helpers/BaseTest.sol';
 
-contract MediciPoolTest is Test {
-    using TypeConverter for address;
 
-    uint256 internal groupId;
-    Semaphore internal semaphore;
+contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     Personhood internal ph;
     Vm internal hevm = Vm(HEVM_ADDRESS);
 
@@ -27,43 +21,34 @@ contract MediciPoolTest is Test {
     MediciToken internal mici;
     ERC20Mintable internal usdc;
 
+    function verifyBorrower(address borrower) internal returns (bool){
+        registerIdentity(); // this simulates a World ID "verified" identity
 
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            borrower
+        );
+
+        return ph.checkNewBorrower(
+            borrower,
+            getRoot(),
+            nullifierHash,
+            proof
+        );
+    }
 
     function setUp() public {
         mici = new MediciToken();
         usdc = new ERC20Mintable('USDC', 'USDC');
         usdc.mint(address(this), 1000e18);
-        usdc.mint(address(1), 1000e18);
+        usdc.mint(adele, 1000e18);
 
-        groupId = 1;
-        ph = new Personhood(semaphore);
+        setUpWorldID();
+        ph = new Personhood(worldID);
 
         pool = new MediciPool(address(mici), address(ph));
         pool.setUSDCAddress(address(usdc));
         usdc.approve(address(pool), type(uint256).max);
-    }
-
-    function genIdentityCommitment() internal returns (uint256) {
-        string[] memory ffiArgs = new string[](2);
-        ffiArgs[0] = "node";
-        ffiArgs[1] = "test/scripts/generate-commitment.js";
-
-        bytes memory returnData = hevm.ffi(ffiArgs);
-        console.log("iden commit = ", abi.decode(returnData, (uint256)));
-        return abi.decode(returnData, (uint256));
-    }
-
-    function genProof() internal returns (uint256, uint256[8] memory proof) {
-        string[] memory ffiArgs = new string[](5);
-        ffiArgs[0] = 'node';
-        ffiArgs[1] = '--no-warnings';
-        ffiArgs[2] = 'test/scripts/generate-proof.js';
-        ffiArgs[3] = address(ph).toString();
-        ffiArgs[4] = address(1).toString();
-
-        bytes memory returnData = hevm.ffi(ffiArgs);
-
-        return abi.decode(returnData, (uint256, uint256[8]));
     }
 
     function testInitPool() public {
@@ -79,19 +64,43 @@ contract MediciPoolTest is Test {
     }
 
     function testCheckNewBorrower() public {
-        console.log("woRKS1");
-        semaphore.createGroup(groupId, 20, 0);
-        console.log("woRKS");
-        semaphore.addMember(groupId, genIdentityCommitment());
+        registerIdentity(); // this simulates a World ID "verified" identity
 
-        (uint256 nullifierHash, uint256[8] memory proof) = genProof();
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            adele
+        );
 
-        ph.checkNewBorrower(address(1), semaphore.getRoot(groupId),nullifierHash, proof);
-        assertTrue(ph.checkAlreadyVerified(address(1)));
+        ph.checkNewBorrower(
+            adele,
+            getRoot(),
+            nullifierHash,
+            proof
+        );
+        assertTrue(ph.checkAlreadyVerified(adele));
     }
 
-    function Request() public {
-        vm.startPrank(address(1));
+    function testDuplicateBorrower_Revert() public {
+        verifyBorrower(adele);
+
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            adele
+        );
+        uint256 root = getRoot();
+        vm.expectRevert(abi.encodeWithSignature("InvalidNullifier()"));
+        ph.checkNewBorrower(
+            bob,
+            root,
+            nullifierHash,
+            proof
+        );
+    }
+
+    function testRequest() public {
+
+        verifyBorrower(adele);
+        vm.startPrank(adele);
         pool.request(10e18);
         (
             address _borrower,
@@ -99,21 +108,35 @@ contract MediciPoolTest is Test {
             address _approver,
             uint256 _startTime
         ) = pool.loans(1);
-        assertEq(_borrower, address(1));
+        assertEq(_borrower, adele);
         assertEq(_amount, 10e18);
         assertEq(_approver, address(0));
         assertEq(_startTime, 0);
         vm.stopPrank();
     }
 
-    function Approve() public {
+    function testRequestUnverified_Revert() public {
+        vm.startPrank(adele);
+        vm.expectRevert('ERROR: invalid worldID');
+        pool.request(10e18);
+        (
+            address _borrower,
+            uint256 _amount,
+            address _approver,
+            uint256 _startTime
+        ) = pool.loans(1);
+        vm.stopPrank();
+    }
+
+    function testApprove() public {
         // sanity
         pool.deposit(1000e18);
         (, , uint256 approvalLimit, uint256 currentlyApproved) = pool.approvers(address(this));
         assertEq(approvalLimit, 1000e18);
         assertEq(currentlyApproved, 0);
 
-        vm.prank(address(1));
+        verifyBorrower(adele);
+        vm.prank(adele);
         pool.request(10e18);
 
         pool.approve(1);
@@ -122,43 +145,47 @@ contract MediciPoolTest is Test {
         assertEq(_approver, address(this));
         assertEq(_startTime, block.timestamp);
 
-        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(address(1));
+        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(adele);
         assertEq(currentlyBorrowed, 10e18);
-        assertEq(pool.getBorrowerLoan(address(1), 0), 1);
+        assertEq(pool.getBorrowerLoan(adele, 0), 1);
 
         ( ,,, currentlyApproved ) = pool.approvers(address(this));
         assertEq(currentlyApproved, 10e18);
 
     }
 
-    function Repay() public {
+    function testRepay() public {
         // sanity
         pool.deposit(1000e18);
-        vm.prank(address(1));
+
+        verifyBorrower(adele);
+        vm.prank(adele);
         pool.request(10e18);
+
         pool.approve(1);
 
         vm.warp(block.timestamp + 15 * 24 * 60 * 60);
-        vm.prank(address(1));
+        vm.prank(adele);
         pool.repay(1, 10e18);
 
-        assertEq(pool.getBorrowerLoan(address(1), 0), 0);
-        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(address(1));
+        assertEq(pool.getBorrowerLoan(adele, 0), 0);
+        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(adele);
         assertEq(currentlyBorrowed, 0);
 
         ( ,,, uint256 currentlyApproved ) = pool.approvers(address(this));
         assertEq(currentlyApproved, 0);
     }
 
-    function Withdraw() public {
+    function testWithdraw() public {
         pool.deposit(1000e18);
 
-        vm.prank(address(1));
+        verifyBorrower(adele);
+        vm.prank(adele);
         pool.request(10e18);
 
         pool.approve(1);
         pool.withdraw(900e18);
-        ( uint balance , , uint256 approvalLimit,  ) = pool.approvers(address(this));
+        ( uint balance , , ,  ) = pool.approvers(address(this));
         assertEq(balance, 100e18);
     }
 }

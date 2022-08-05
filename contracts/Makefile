@@ -13,7 +13,8 @@ install :; forge install smartcontractkit/chainlink-brownie-contracts && forge i
 # Update Dependencies
 update:; forge update
 
-build:; forge build
+# Build contracts and inject the Poseidon library.
+build:; forge build && node ./test/scripts/generate-circom-lib.js
 
 test :; forge test
 
