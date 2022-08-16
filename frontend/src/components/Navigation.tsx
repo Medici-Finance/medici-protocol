@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Home from '../pages/home';
-import Deposit from '../pages/deposit';
-import Borrow from '../pages/borrow';
+import { Route, Routes } from 'react-router-dom';
+
 import Approve from '../pages/approve';
+import Borrow from '../pages/borrow';
+import Deposit from '../pages/deposit';
+import Home from '../pages/home';
 
 const routes = [
     {
@@ -28,7 +29,7 @@ const routes = [
     },
 ];
 
-function Navigation() {
+function Navigation(walletAddress: string) {
     return (
         <Routes>
             {routes.map((route) => (
@@ -36,6 +37,7 @@ function Navigation() {
                     path={route.path}
                     element={<route.component />}
                     key={route.toString()}
+                    // walletAddress={walletAddress}
                 />
             ))}
         </Routes>
