@@ -70,10 +70,10 @@ function Deposit() {
 
     React.useEffect(() => {
         console.log('processing deposit\n');
-        console.log('data: ', depositData);
-        console.log('error: ', depositError);
-        console.log('loading: ', isDepositLoading);
-        console.log('success: ', isDepositSuccess);
+        console.log('data:', depositData);
+        console.log('error:', depositError);
+        console.log('loading:', isDepositLoading);
+        console.log('success:', isDepositSuccess);
     }, [depositData, depositError]);
 
     const { isSuccess: txSuccess, error: txError } = useWaitForTransaction({

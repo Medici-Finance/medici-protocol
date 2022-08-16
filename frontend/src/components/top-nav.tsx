@@ -1,8 +1,11 @@
-import { FC } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Logo from './Logo';
 import { Flex, HStack, Link, useColorModeValue } from '@chakra-ui/react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import React, { FC, useEffect } from 'react';
 import { NavLink as RouterNavLink } from 'react-router-dom';
+import { useAccount } from 'wagmi';
+
+import { useTracked } from '../App';
+import Logo from './Logo';
 
 function NavLink({ name, path, onClose }) {
     return (
@@ -27,12 +30,24 @@ function NavLink({ name, path, onClose }) {
 }
 
 const TopNav: FC = () => {
+    const [walletAddress, setWalletAddress] = useTracked();
+    const { address, status, isConnected } = useAccount();
+
+    // const { address, isConnecting, isDisconnected } = useAccount();
+
     const routes = [
         { name: 'Home', path: '/' },
         { name: 'Deposit', path: '/deposit' },
         { name: 'Borrow', path: '/borrow' },
         { name: 'Approve', path: '/approve' },
     ];
+
+    useEffect(() => {
+        setWalletAddress({ walletAddress: address.toString() || '' });
+        console.log(status, ' to wallet - ', walletAddress);
+    }, [address]);
+
+    // return <div>{address}</div>;
 
     return (
         <Flex
