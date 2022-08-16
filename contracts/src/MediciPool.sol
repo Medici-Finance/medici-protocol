@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
-import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
+import { Counters } from '@openzeppelin/contracts/utils/Counters.sol';
+import { ReentrancyGuard } from '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import 'forge-std/console.sol';
 import 'forge-std/Vm.sol';
 
@@ -34,7 +35,7 @@ struct Approver {
     uint256 currentlyApproved;
 }
 
-contract MediciPool is Ownable, ReentrancyGuard {
+contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     MediciToken dToken;
     Personhood ph;
@@ -71,7 +72,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
      *************************************************************************/
 
     constructor(address _tokenAddr, address _phAddr) public Ownable() {
-        poolToken = MediciToken(_tokenAddr);
+        dpToken = MediciToken(_tokenAddr);
         ph = Personhood(_phAddr);
         initialize();
     }
