@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.13;
+pragma solidity ^0.8.13;
 
 import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { Counters } from '@openzeppelin/contracts/utils/Counters.sol';
 import { ReentrancyGuard } from '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import 'forge-std/console.sol';
 import 'forge-std/Vm.sol';
 
@@ -35,9 +35,9 @@ struct Approver {
     uint256 currentlyApproved;
 }
 
-contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
+contract MediciPool is ERC20Upgradeable, ReentrancyGuard {
     using Counters for Counters.Counter;
-    MediciToken dToken;
+    IERC20 public poolToken;
     Personhood ph;
     address USDCAddress = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
 
@@ -71,13 +71,13 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
      * Constructor
      *************************************************************************/
 
-    constructor(address _tokenAddr, address _phAddr) public Ownable() {
-        dpToken = MediciToken(_tokenAddr);
+    constructor(IERC20 _poolToken, address _phAddr) public {
+        poolToken = _poolToken;
         ph = Personhood(_phAddr);
         initialize();
     }
 
-    function initialize() public onlyOwner {
+    function initialize() public {
         lendingRateAPR = 2e17;
         maxTimePeriod = 30;
         minPoolAllocation = 10e15;
@@ -106,7 +106,7 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
         return lendingRateAPR;
     }
 
-    function setLendingRate(uint256 _lendingRateAPR) public onlyOwner {
+    function setLendingRate(uint256 _lendingRateAPR) public {
         lendingRateAPR = _lendingRateAPR;
     }
 
@@ -126,7 +126,7 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
             uint256 principal,
             uint256 amountRepaid, ,
             uint256 duration,
-            uint256 repaymentDate ) = currentLoans[i];
+            uint256 repaymentDate ) = _loan;
         uint _timePeriod = getTimePeriodDays(repaymentDate - duration);
         return Math.calculateInterest(principal - amountRepaid, lendingRateAPR, _timePeriod);
     }
@@ -141,16 +141,16 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
                 uint256 duration,
                 uint256 repaymentDate ) = currentLoans[i];
             if (repaymentDate > block.timestamp && amountRepaid < principal) {
-                _total += principal + calcInterest(currentLoan[i]) - amountRepaid;
+                _total += principal + calcInterest(currentLoans[i]) - amountRepaid;
             }
         }
         return _total;
     }
 
     function getPoolShare(uint256 _amt) public view returns (uint256) {
-        uint dTokenSupply = dToken.totalSupply();
+        uint dTokenSupply = totalSupply();
         if (dTokenSupply == 0) {
-            return ((_amt * 10**dToken.decimals()) / 10**poolToken.decimals());
+            return ((_amt * 10**decimals()) / 10**poolToken.decimals());
         } else {
             return _amt * dTokenSupply / (poolToken.balanceOf(this) + totalLoanValue());
         }
@@ -218,9 +218,9 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
             approvers[msg.sender].reputation = rep;
         }
 
-        _mint(msg.sender, getPoolShare(_amt));
-
-        emit DepositMade(msg.sender, _amt, depositShare);
+        uint dToken = getPoolShare(_amt);
+        _mint(msg.sender, dToken);
+        emit DepositMade(msg.sender, _amt, dToken);
     }
 
     function withdraw(uint256 _amt) external {
@@ -230,7 +230,6 @@ contract MediciPool is ERC20Upgradable, Ownable, ReentrancyGuard {
         uint256 withdrawable = _approver.balance - _approver.currentlyApproved;
         require(withdrawable >= _amt, 'Not enough balance');
         uint256 withdrawShare = getPoolShare(_amt);
-        burnShares(withdrawShare);
 
         _approver.balance -= _amt;
         updateApproverReputation(msg.sender);
