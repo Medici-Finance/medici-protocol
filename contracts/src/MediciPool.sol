@@ -13,17 +13,18 @@ import './MediciToken.sol';
 import './Personhood.sol';
 
 struct Borrower {
-        uint256 borrowLimit;
-        uint256 currentlyBorrowed;
-        uint256 reputation;
-        uint256[] loans;
+    uint256 borrowLimit;
+    uint256 currentlyBorrowed;
+    uint256 reputation;
+    uint256[] loans;
 }
 
 struct Loan {
     address borrower;
-    uint256 amount;
+    uint256 principal;
+    uint256 amountRepaid;
     address approver;
-    uint256 startTime;
+    uint256 repaymentTime;
 }
 
 struct Approver {
@@ -35,7 +36,7 @@ struct Approver {
 
 contract MediciPool is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
-    MediciToken poolToken;
+    MediciToken dToken;
     Personhood ph;
     address USDCAddress = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
 
@@ -44,8 +45,9 @@ contract MediciPool is Ownable, ReentrancyGuard {
     mapping(address => Approver) public approvers;
     mapping(address => Borrower) public borrowers;
     mapping(uint256 => Loan) public loans;
+    Loan[] public currentLoans;
 
-    uint256 public totalShares; // total shares of LP tokens
+    uint256 public poolDeposits;
     uint256 public maxLoanAmount;
     uint256 public maxTimePeriod; //in days
     uint256 public minPoolAllocation; // per 10^18
@@ -78,7 +80,6 @@ contract MediciPool is Ownable, ReentrancyGuard {
         lendingRateAPR = 2e17;
         maxTimePeriod = 30;
         minPoolAllocation = 10e15;
-        totalShares = 0;
         currentId.increment();
     }
 
@@ -118,25 +119,44 @@ contract MediciPool is Ownable, ReentrancyGuard {
         // return loans[_borrower].amount + Math.calculateInterest(loans[_borrower], lendingRateAPR, 1);
     }
 
-    function getPoolShare(uint256 _amt) public view returns (uint256) {
-        uint256 share = (_amt * 1e18) / (_amt + totalShares);
-        return share;
+    function calcInterest(Loan calldata _loan) public view returns (uint256) {
+        (
+            ,
+            uint256 principal,
+            uint256 amountRepaid, ,
+            uint256 duration,
+            uint256 repaymentDate ) = currentLoans[i];
+        uint _timePeriod = getTimePeriodDays(repaymentDate - duration);
+        return Math.calculateInterest(principal - amountRepaid, lendingRateAPR, _timePeriod);
     }
 
-    function getTotalShares() public view returns (uint256) {
-        return poolToken.totalSupply();
+    function totalLoanValue() public view returns (uint256) {
+        uint _total = 0;
+        for (uint256 i = 0; i < currentLoans.length; i++) {
+            (
+                ,
+                uint256 principal,
+                uint256 amountRepaid, ,
+                uint256 duration,
+                uint256 repaymentDate ) = currentLoans[i];
+            if (repaymentDate > block.timestamp && amountRepaid < principal) {
+                _total += principal + calcInterest(currentLoan[i]) - amountRepaid;
+            }
+        }
+        return _total;
+    }
+
+    function getPoolShare(uint256 _amt) public view returns (uint256) {
+        uint dTokenSupply = dToken.totalSupply();
+        if (dTokenSupply == 0) {
+            return ((_amt * 10**dToken.decimals()) / 10**poolToken.decimals());
+        } else {
+            return _amt * dTokenSupply / (poolToken.balanceOf(this) + totalLoanValue());
+        }
     }
 
     function getPoolReserves() public view returns (uint256) {
         return getUSDC(USDCAddress).balanceOf(address(this));
-    }
-
-    function mintNewShares(uint256 _amt) public onlyApprover {
-        poolToken.mint(_amt);
-    }
-
-    function burnShares(uint256 _amt) public onlyApprover {
-        poolToken.burn(_amt);
     }
 
     function getUSDC(address _addr) internal view returns (IERC20) {
@@ -169,6 +189,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         return (block.timestamp - startTime) / (24 * 60 * 60);
     }
 
+
     function getBorrowerLoan(address _borrower, uint256 _index) public view returns (uint256) {
         if (_index >= borrowers[_borrower].loans.length) {
             return 0;
@@ -182,7 +203,6 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
     function deposit(uint256 _amt) external {
         require(_amt > 0, 'Must deposit more than zero');
-        uint256 depositShare = getPoolShare(_amt);
 
         bool success = doUSDCTransfer(msg.sender, address(this), _amt);
         require(success, 'Failed to transfer for deposit');
@@ -196,7 +216,8 @@ contract MediciPool is Ownable, ReentrancyGuard {
             approvers[msg.sender].approvalLimit += _amt;
             approvers[msg.sender].reputation = rep;
         }
-        mintNewShares(depositShare);
+
+        _mint(msg.sender, getPoolShare(_amt));
 
         emit DepositMade(msg.sender, _amt, depositShare);
     }
