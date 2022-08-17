@@ -5,7 +5,7 @@ import 'forge-std/console.sol';
 import 'forge-std/vm.sol';
 
 import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
-import { ERC20Mintable } from '../src/helpers/ERC20Mintable.sol';
+import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import { Borrower } from '../src/MediciPool.sol';
 import { MediciToken } from '../src/MediciToken.sol';
 import { MediciPool } from '../src/MediciPool.sol';
@@ -19,7 +19,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
     MediciPool internal pool;
     MediciToken internal mici;
-    ERC20Mintable internal usdc;
+    ERC20 internal usdc;
 
     function verifyBorrower(address borrower) internal returns (bool){
         registerIdentity(); // this simulates a World ID "verified" identity
@@ -39,14 +39,14 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
     function setUp() public {
         mici = new MediciToken();
-        usdc = new ERC20Mintable('USDC', 'USDC');
+        usdc = new ERC20('USDC', 'USDC');
         usdc.mint(address(this), 1000e18);
         usdc.mint(adele, 1000e18);
 
         setUpWorldID();
         ph = new Personhood(worldID);
 
-        pool = new MediciPool(address(mici), address(ph));
+        pool = new MediciPool(usdc, address(ph));
         pool.setUSDCAddress(address(usdc));
         usdc.approve(address(pool), type(uint256).max);
     }
@@ -101,29 +101,31 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
         verifyBorrower(adele);
         vm.startPrank(adele);
-        pool.request(10e18);
+        pool.request(10e18, 10e6);
         (
             address _borrower,
-            uint256 _amount,
+            uint256 _principal,
+            uint256 _amountRepaid,
             address _approver,
-            uint256 _startTime
+            uint256 _repaymentTime
         ) = pool.loans(1);
         assertEq(_borrower, adele);
-        assertEq(_amount, 10e18);
+        assertEq(_principal, 10e18);
         assertEq(_approver, address(0));
-        assertEq(_startTime, 0);
+        assertEq(_repaymentTime, 0);
         vm.stopPrank();
     }
 
     function testRequestUnverified_Revert() public {
         vm.startPrank(adele);
         vm.expectRevert('ERROR: invalid worldID');
-        pool.request(10e18);
+        pool.request(10e18, 10e6);
         (
             address _borrower,
-            uint256 _amount,
+            uint256 _principal,
+            uint256 _amountRepaid,
             address _approver,
-            uint256 _startTime
+            uint256 _repaymentTime
         ) = pool.loans(1);
         vm.stopPrank();
     }
@@ -137,7 +139,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
         verifyBorrower(adele);
         vm.prank(adele);
-        pool.request(10e18);
+        pool.request(10e18, 10e6);
 
         pool.approve(1);
 
