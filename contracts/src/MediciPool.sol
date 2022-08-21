@@ -21,6 +21,12 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
 
+    mapping(address => Approver) public approvers;
+    mapping(address => Borrower) public borrowers;
+    mapping(uint256 => Loan) public loans;
+    uint256[] public currentLoans;
+    uint256[] public  bLoans;
+
     uint256 public poolDeposits;
     uint256 public maxLoanAmount;
     uint256 public maxTimePeriod; //in days
@@ -69,6 +75,22 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     modifier uniqueBorrower(address borrower) {
         require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
         _;
+    }
+
+    /**************************************************************************
+     * Getter Functions
+     *************************************************************************/
+
+    function getApprovers(address _addr) public view returns (Approver memory) {
+        return approvers[_addr];
+    }
+
+    function getBorrowers(address _addr) public view returns (Borrower memory) {
+        return borrowers[_addr];
+    }
+
+    function getLoans(uint256 _loanId) public view returns (Loan memory) {
+        return loans[_loanId];
     }
 
     /**************************************************************************
@@ -164,6 +186,19 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
             return 0;
         }
         return borrowers[_borrower].loans[_index];
+    }
+
+
+    function getBadLoans() public returns (uint256[] memory) {
+
+        for (uint256 i = 0; i < currentLoans.length; i++) {
+            if (checkDefault(currentLoans[i])) {
+                bLoans.push(currentLoans[i]);
+            }
+        }
+        // TODO: do better that this
+        uint256[] memory cpyLoans = bLoans;
+        return cpyLoans;
     }
 
     /**************************************************************************
@@ -320,7 +355,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
     function checkDefault(uint256 _loanId) public view returns (bool) {
         Loan memory _loan = loans[_loanId];
-        if (_loan.repaymentTime < block.timestamp) {
+        if (_loan.repaymentTime < block.timestamp && _loan.principal > _loan.amountRepaid) {
             return true;
         } else {
             return false;
