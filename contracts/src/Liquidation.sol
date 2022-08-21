@@ -2,9 +2,10 @@
 pragma solidity ^0.8.13;
 
 
-import { KeeperCompatibleInterface } from "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
+import { KeeperCompatibleInterface } from "./interfaces/KeeperCompatibleInterface.sol";
 import { Pausable } from "@openzeppelin/contracts/security/Pausable.sol";
-import { IMediciPool } from "./IMediciPool.sol";
+import { Approver, Loan } from "./interfaces/IMediciPool.sol";
+import { IMediciPool } from "./interfaces/IMediciPool.sol";
 
 contract Liquidation is KeeperCompatibleInterface {
     // TODO: checkUpkeep - check for loan deadline and default

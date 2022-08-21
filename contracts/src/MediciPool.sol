@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
+import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
+import { IMediciPool } from "./interfaces/IMediciPool.sol";
 import { Counters } from '@openzeppelin/contracts/utils/Counters.sol';
-import { ReentrancyGuard } from '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import 'forge-std/console.sol';
@@ -12,30 +12,7 @@ import 'forge-std/Vm.sol';
 import './helpers/Math.sol';
 import './Personhood.sol';
 
-struct Borrower {
-    uint256 borrowLimit;
-    uint256 currentlyBorrowed;
-    uint256 reputation;
-    uint256[] loans;
-}
-
-struct Loan {
-    address borrower;
-    uint256 principal;
-    uint256 amountRepaid;
-    address approver;
-    uint256 duration;
-    uint256 repaymentTime;
-}
-
-struct Approver {
-    uint256 balance;
-    uint256 reputation;
-    uint256 approvalLimit;
-    uint256 currentlyApproved;
-}
-
-contract MediciPool is ERC20Upgradeable, ReentrancyGuard {
+contract MediciPool is ERC20Upgradeable, IMediciPool {
     using Counters for Counters.Counter;
     ERC20 public poolToken;
     Personhood ph;
@@ -43,10 +20,6 @@ contract MediciPool is ERC20Upgradeable, ReentrancyGuard {
 
     uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
-    mapping(address => Approver) public approvers;
-    mapping(address => Borrower) public borrowers;
-    mapping(uint256 => Loan) public loans;
-    uint256[] public currentLoans;
 
     uint256 public poolDeposits;
     uint256 public maxLoanAmount;
@@ -155,8 +128,8 @@ contract MediciPool is ERC20Upgradeable, ReentrancyGuard {
         return getUSDC(USDCAddress).balanceOf(address(this));
     }
 
-    function getUSDC(address _addr) internal view returns (IERC20) {
-        return IERC20(_addr);
+    function getUSDC(address _addr) internal view returns (ERC20) {
+        return ERC20(_addr);
     }
 
     function doUSDCTransfer(
@@ -166,7 +139,7 @@ contract MediciPool is ERC20Upgradeable, ReentrancyGuard {
     ) internal returns (bool) {
         require(to != address(0), "Can't send to zero address");
 
-        IERC20 usdc = getUSDC(USDCAddress);
+        ERC20 usdc = getUSDC(USDCAddress);
         if (from ==  address(this)) {
             return usdc.transfer(to, amount);
         }
