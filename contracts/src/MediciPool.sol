@@ -25,7 +25,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     mapping(address => Borrower) public borrowers;
     mapping(uint256 => Loan) public loans;
     uint256[] public currentLoans;
-    uint256[] public  bLoans;
+    uint256[] public bLoans;
 
     uint256 public poolDeposits;
     uint256 public maxLoanAmount;
@@ -50,15 +50,15 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Constructor
      *************************************************************************/
 
-    constructor(ERC20 _poolToken, address _phAddr) public {
+    constructor(ERC20 _poolToken, address _phAddr, uint256 _maxDuration, uint256 _lendingRate) public {
         poolToken = _poolToken;
         ph = Personhood(_phAddr);
-        initialize();
+        initialize(_lendingRate, _maxDuration );
     }
 
-    function initialize() public {
-        lendingRateAPR = 2e17;
-        maxTimePeriod = 30;
+    function initialize(uint256 _lendingRate, uint256 _maxDuration) public {
+        lendingRateAPR = _lendingRate;
+        maxTimePeriod = _maxDuration;
         minPoolAllocation = 10e15;
         currentId.increment();
     }
@@ -97,16 +97,8 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Utility Functions
      *************************************************************************/
 
-    function getLendingRate() public view returns (uint256) {
-        return lendingRateAPR;
-    }
-
     function setLendingRate(uint256 _lendingRateAPR) public {
         lendingRateAPR = _lendingRateAPR;
-    }
-
-    function setUSDCAddress(address _addr) public {
-        USDCAddress = _addr;
     }
 
     function getRepayAmount(address _borrower) public view returns (uint256) {
@@ -147,11 +139,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     }
 
     function getPoolReserves() public view returns (uint256) {
-        return getUSDC(USDCAddress).balanceOf(address(this));
-    }
-
-    function getUSDC(address _addr) internal view returns (ERC20) {
-        return ERC20(_addr);
+        return poolToken.balanceOf(address(this));
     }
 
     function doUSDCTransfer(
@@ -160,20 +148,14 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         uint256 amount
     ) internal returns (bool) {
         require(to != address(0), "Can't send to zero address");
-
-        ERC20 usdc = getUSDC(USDCAddress);
         if (from ==  address(this)) {
-            return usdc.transfer(to, amount);
+            return poolToken.transfer(to, amount);
         }
-        return usdc.transferFrom(from, to, amount);
+        return poolToken.transferFrom(from, to, amount);
     }
 
     function getInitialBorrowLimit() public view returns (uint256) {
         return Math.mulDiv(getPoolReserves(), minPoolAllocation, 10**18);
-    }
-
-    function getTimePeriod() internal view returns (uint256) {
-        return maxTimePeriod * 24 * 60 * 60;
     }
 
     function getTimePeriodDays(uint256 startTime) internal view returns (uint256) {

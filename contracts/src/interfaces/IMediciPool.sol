@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.15;
 
 struct Borrower {
     uint256 borrowLimit;
@@ -25,7 +25,6 @@ struct Approver {
 }
 
 interface IMediciPool {
-    function initialize() external;
     function deposit(uint256 _amt) external;
     function withdraw(uint256 _amt) external;
     function request(uint256 _amt, uint256 duration) external;

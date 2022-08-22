@@ -14,7 +14,7 @@ contract DeployMediciPool is Script {
         vm.startBroadcast();
         ERC20 usdcToken = ERC20(usdc_goerli_address);
         // Personhood ph = new Personhood(HelperConfig.worldID);
-        MediciPool pool = new MediciPool(usdcToken, address(usdcToken));
+        MediciPool pool = new MediciPool(usdcToken, address(usdcToken), 90, 2e17);
         vm.stopBroadcast();
     }
 }
