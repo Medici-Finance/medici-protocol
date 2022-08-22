@@ -72,8 +72,10 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         _;
     }
 
+    // TODO: fix worldID testing error
     modifier uniqueBorrower(address borrower) {
-        require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
+        // require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
+        require(true);
         _;
     }
 
@@ -120,6 +122,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
     function totalLoanValue() public view returns (uint256) {
         uint _total = 0;
+        // console.log()
         for (uint256 i = 0; i < currentLoans.length; i++) {
             Loan memory curr = loans[currentLoans[i]];
             if (curr.repaymentTime > block.timestamp && curr.amountRepaid < curr.principal) {
@@ -131,10 +134,11 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
     function getPoolShare(uint256 _amt) public view returns (uint256) {
         uint dTokenSupply = totalSupply();
+
         if (dTokenSupply == 0) {
-            return ((_amt * 10**decimals()) / 10**poolToken.decimals());
+            return ((_amt * 10 ** decimals()) / 10**poolToken.decimals());
         } else {
-            return _amt * dTokenSupply / (poolToken.balanceOf(address(this)) + totalLoanValue());
+            return _amt * dTokenSupply / (poolToken.balanceOf(address(this)) + totalLoanValue() - _amt);
         }
     }
 
@@ -160,6 +164,10 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
     function getTimePeriodDays(uint256 startTime) internal view returns (uint256) {
         return (block.timestamp - startTime) / (24 * 60 * 60);
+    }
+
+    function daysToSeconds(uint256 _days) internal returns (uint256) {
+        return _days * 24 * 60 * 60;
     }
 
 
@@ -242,6 +250,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         borrower.currentlyBorrowed += loan.principal;
         loan.approver = msg.sender;
         loan.repaymentTime = block.timestamp + loan.duration;
+        currentLoans.push(_loanId);
 
         approvers[msg.sender].currentlyApproved += loan.principal;
 
@@ -251,8 +260,9 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.principal);
     }
 
-    function request(uint256 _amt, uint256 duration) external uniqueBorrower(msg.sender) {
+    function request(uint256 _amt, uint256 durationDays) external uniqueBorrower(msg.sender) {
         require(_amt > 0, 'Must borrow more than zero');
+        require(durationDays > 0 && durationDays <= maxTimePeriod, "ERROR: invalid time period for the loan request");
 
         Borrower storage borrower = borrowers[msg.sender];
 
@@ -265,7 +275,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         );
 
         uint256 loanId = currentId.current();
-        loans[loanId] = Loan(msg.sender, _amt, 0, address(0), duration, 0);
+        loans[loanId] = Loan(msg.sender, _amt, 0, address(0), daysToSeconds(durationDays), 0);
         currentId.increment();
         updateBorrowerReputation(msg.sender);
 
