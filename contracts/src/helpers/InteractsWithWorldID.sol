@@ -10,7 +10,7 @@ contract InteractsWithWorldID {
     using TypeConverter for address;
 
     Vm public wldVM =
-        Vm(address(bytes20(uint160(uint(keccak256("hevm cheat code"))))));
+        Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
     Semaphore internal semaphore;
     IWorldID internal worldID;
 
@@ -31,22 +31,22 @@ contract InteractsWithWorldID {
         semaphore.addMember(1, 1);
     }
 
-    function getRoot() public view returns (uint) {
+    function getRoot() public view returns (uint256) {
         return semaphore.getRoot(1);
     }
 
-    function _genIdentityCommitment() internal returns (uint) {
+    function _genIdentityCommitment() internal returns (uint256) {
         string[] memory ffiArgs = new string[](3);
         ffiArgs[0] = "node";
         ffiArgs[1] = "test/scripts/generate-commitment.js";
 
         bytes memory returnData = wldVM.ffi(ffiArgs);
-        return abi.decode(returnData, (uint));
+        return abi.decode(returnData, (uint256));
     }
 
     function getProof(address externalNullifier, address signal)
         internal
-        returns (uint, uint[8] memory proof)
+        returns (uint256, uint256[8] memory proof)
     {
         // increase the length of the array if you have multiple parameters as signal
         string[] memory ffiArgs = new string[](6);
@@ -63,6 +63,6 @@ contract InteractsWithWorldID {
 
         bytes memory returnData = wldVM.ffi(ffiArgs);
 
-        return abi.decode(returnData, (uint, uint[8]));
+        return abi.decode(returnData, (uint256, uint256[8]));
     }
 }

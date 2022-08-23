@@ -18,45 +18,45 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     Personhood ph;
     address USDCAddress = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
 
-    uint public lendingRateAPR; // per 10^18
+    uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
 
     mapping(address => Approver) public approvers;
     mapping(address => Borrower) public borrowers;
-    mapping(uint => Loan) public loans;
-    uint[] public currentLoans;
-    uint[] public bLoans;
+    mapping(uint256 => Loan) public loans;
+    uint256[] public currentLoans;
+    uint256[] public bLoans;
 
-    uint public poolDeposits;
-    uint public maxLoanAmount;
-    uint public maxTimePeriod; //in days
-    uint public minPoolAllocation; // per 10^18
+    uint256 public poolDeposits;
+    uint256 public maxLoanAmount;
+    uint256 public maxTimePeriod; //in days
+    uint256 public minPoolAllocation; // per 10^18
 
     /**************************************************************************
      * Events
      *************************************************************************/
 
-    event DepositMade(address indexed poolProvider, uint amount, uint shares);
-    event WithdrawalMade(address indexed poolProvider, uint amount, uint shares);
-    event NewLoanRequest(address indexed borrower, uint loanId, uint amount);
+    event DepositMade(address indexed poolProvider, uint256 amount, uint256 shares);
+    event WithdrawalMade(address indexed poolProvider, uint256 amount, uint256 shares);
+    event NewLoanRequest(address indexed borrower, uint256 loanId, uint256 amount);
     event LoanApproved(
         address indexed approver,
         address indexed borrower,
-        uint loanId,
-        uint amount
+        uint256 loanId,
+        uint256 amount
     );
 
     /**************************************************************************
      * Constructor
      *************************************************************************/
 
-    constructor(ERC20 _poolToken, address _phAddr, uint _maxDuration, uint _lendingRate) public {
+    constructor(ERC20 _poolToken, address _phAddr, uint256 _maxDuration, uint256 _lendingRate) public {
         poolToken = _poolToken;
         ph = Personhood(_phAddr);
         initialize(_lendingRate, _maxDuration );
     }
 
-    function initialize(uint _lendingRate, uint _maxDuration) public {
+    function initialize(uint256 _lendingRate, uint256 _maxDuration) public {
         lendingRateAPR = _lendingRate;
         maxTimePeriod = _maxDuration;
         minPoolAllocation = 10e15;
@@ -91,7 +91,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         return borrowers[_addr];
     }
 
-    function getLoans(uint _loanId) public view returns (Loan memory) {
+    function getLoans(uint256 _loanId) public view returns (Loan memory) {
         return loans[_loanId];
     }
 
@@ -99,31 +99,31 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Utility Functions
      *************************************************************************/
 
-    function setLendingRate(uint _lendingRateAPR) public {
+    function setLendingRate(uint256 _lendingRateAPR) public {
         lendingRateAPR = _lendingRateAPR;
     }
 
-    function getRepayAmount(address _borrower) public view returns (uint) {
+    function getRepayAmount(address _borrower) public view returns (uint256) {
         // TODO
         // require(loans[_borrower].approved, "Loan not approved");
         // return loans[_borrower].amount + Math.calculateInterest(loans[_borrower], lendingRateAPR, 1);
     }
 
-    function calcInterest(Loan memory _loan) public view returns (uint) {
+    function calcInterest(Loan memory _loan) public view returns (uint256) {
         // (
         //     ,
-        //     uint principal,
-        //     uint amountRepaid, ,
-        //     uint duration,
-        //     uint repaymentDate ) = _loan;
+        //     uint256 principal,
+        //     uint256 amountRepaid, ,
+        //     uint256 duration,
+        //     uint256 repaymentDate ) = _loan;
         uint _timePeriod = getTimePeriodDays(_loan.repaymentTime - _loan.duration);
         return Math.calculateInterest(_loan.principal - _loan.principal, lendingRateAPR, _timePeriod);
     }
 
-    function totalLoanValue() public view returns (uint) {
+    function totalLoanValue() public view returns (uint256) {
         uint _total = 0;
         // console.log()
-        for (uint i = 0; i < currentLoans.length; i++) {
+        for (uint256 i = 0; i < currentLoans.length; i++) {
             Loan memory curr = loans[currentLoans[i]];
             if (curr.repaymentTime > block.timestamp && curr.amountRepaid < curr.principal) {
                 _total += curr.principal + calcInterest(curr) - curr.amountRepaid;
@@ -132,7 +132,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         return _total;
     }
 
-    function getPoolShare(uint _amt) public view returns (uint) {
+    function getPoolShare(uint256 _amt) public view returns (uint256) {
         uint dTokenSupply = totalSupply();
 
         if (dTokenSupply == 0) {
@@ -142,14 +142,14 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         }
     }
 
-    function getPoolReserves() public view returns (uint) {
+    function getPoolReserves() public view returns (uint256) {
         return poolToken.balanceOf(address(this));
     }
 
     function doUSDCTransfer(
         address from,
         address to,
-        uint amount
+        uint256 amount
     ) internal returns (bool) {
         require(to != address(0), "Can't send to zero address");
         if (from ==  address(this)) {
@@ -158,20 +158,20 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         return poolToken.transferFrom(from, to, amount);
     }
 
-    function getInitialBorrowLimit() public view returns (uint) {
+    function getInitialBorrowLimit() public view returns (uint256) {
         return Math.mulDiv(getPoolReserves(), minPoolAllocation, 10**18);
     }
 
-    function getTimePeriodDays(uint startTime) internal view returns (uint) {
+    function getTimePeriodDays(uint256 startTime) internal view returns (uint256) {
         return (block.timestamp - startTime) / (24 * 60 * 60);
     }
 
-    function daysToSeconds(uint _days) internal returns (uint) {
+    function daysToSeconds(uint256 _days) internal returns (uint256) {
         return _days * 24 * 60 * 60;
     }
 
 
-    function getBorrowerLoan(address _borrower, uint _index) public view returns (uint) {
+    function getBorrowerLoan(address _borrower, uint256 _index) public view returns (uint256) {
         if (_index >= borrowers[_borrower].loans.length) {
             return 0;
         }
@@ -179,15 +179,15 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     }
 
 
-    function getBadLoans() public returns (uint[] memory) {
+    function getBadLoans() public returns (uint256[] memory) {
 
-        for (uint i = 0; i < currentLoans.length; i++) {
+        for (uint256 i = 0; i < currentLoans.length; i++) {
             if (checkDefault(currentLoans[i])) {
                 bLoans.push(currentLoans[i]);
             }
         }
         // TODO: do better that this
-        uint[] memory cpyLoans = bLoans;
+        uint256[] memory cpyLoans = bLoans;
         return cpyLoans;
     }
 
@@ -195,13 +195,13 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Core Functions
      *************************************************************************/
 
-    function deposit(uint _amt) external {
+    function deposit(uint256 _amt) external {
         require(_amt > 0, 'Must deposit more than zero');
 
         bool success = doUSDCTransfer(msg.sender, address(this), _amt);
         require(success, 'Failed to transfer for deposit');
 
-        uint rep = getReputation();
+        uint256 rep = getReputation();
 
         if (approvers[msg.sender].balance == 0) {
             approvers[msg.sender] = Approver(_amt, rep, _amt, 0);
@@ -216,13 +216,13 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit DepositMade(msg.sender, _amt, dToken);
     }
 
-    function withdraw(uint _amt) external {
+    function withdraw(uint256 _amt) external {
         require(_amt > 0, 'Must withdraw more than zero');
 
         Approver storage _approver = approvers[msg.sender];
-        uint withdrawable = _approver.balance - _approver.currentlyApproved;
+        uint256 withdrawable = _approver.balance - _approver.currentlyApproved;
         require(withdrawable >= _amt, 'Not enough balance');
-        uint withdrawShare = getPoolShare(_amt);
+        uint256 withdrawShare = getPoolShare(_amt);
 
         _approver.balance -= _amt;
         updateApproverReputation(msg.sender);
@@ -231,7 +231,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit WithdrawalMade(msg.sender, _amt, withdrawShare);
     }
 
-    function approve(uint _loanId) public onlyApprover {
+    function approve(uint256 _loanId) public onlyApprover {
         Loan storage loan = loans[_loanId];
         require(loan.principal > 0, 'Invalid loan');
         require(loan.approver == address(0), 'Loan already approved');
@@ -260,7 +260,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.principal);
     }
 
-    function request(uint _amt, uint durationDays) external uniqueBorrower(msg.sender) {
+    function request(uint256 _amt, uint256 durationDays) external uniqueBorrower(msg.sender) {
         require(_amt > 0, 'Must borrow more than zero');
         require(durationDays > 0 && durationDays <= maxTimePeriod, "ERROR: invalid time period for the loan request");
 
@@ -274,7 +274,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
             'Going over your borrow limit'
         );
 
-        uint loanId = currentId.current();
+        uint256 loanId = currentId.current();
         loans[loanId] = Loan(msg.sender, _amt, 0, address(0), daysToSeconds(durationDays), 0);
         currentId.increment();
         updateBorrowerReputation(msg.sender);
@@ -282,7 +282,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit NewLoanRequest(msg.sender, loanId, _amt);
     }
 
-    function repay(uint _loanId, uint _amt) external {
+    function repay(uint256 _loanId, uint256 _amt) external {
         require(_amt > 0, 'Must borrow more than zero');
 
         Loan storage loan = loans[_loanId];
@@ -291,7 +291,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
         require(!checkDefault(_loanId), 'Passed the deadline');
         require(_amt <= borrower.currentlyBorrowed, "Can't repay more than you owe");
-        uint repayAmt = _amt + calcInterest(loan);
+        uint256 repayAmt = _amt + calcInterest(loan);
 
         bool success = doUSDCTransfer(address(this), msg.sender, _amt);
         require(success, 'Failed to transfer for repay');
@@ -309,35 +309,35 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Internal Functions
      *************************************************************************/
 
-    function getReputation() public view returns (uint) {
+    function getReputation() public view returns (uint256) {
         return 200;
     }
 
-    function getBorrowLimit(uint _reputation) public view returns (uint) {
+    function getBorrowLimit(uint256 _reputation) public view returns (uint256) {
         return 1000e18;
     }
 
-    function getApprovalLimit(uint _reputation) public view returns (uint) {
+    function getApprovalLimit(uint256 _reputation) public view returns (uint256) {
         return 1000e18;
     }
 
     function updateBorrowerReputation(address _ba) public {
         Borrower storage _borrower = borrowers[_ba];
-        uint _rep = getReputation();
+        uint256 _rep = getReputation();
         _borrower.reputation = _rep;
         _borrower.borrowLimit = getBorrowLimit(_rep);
     }
 
     function updateApproverReputation(address _aa) public {
         Approver storage _approver = approvers[_aa];
-        uint _rep = getReputation();
+        uint256 _rep = getReputation();
         _approver.reputation = _rep;
         _approver.approvalLimit = getApprovalLimit(_rep);
     }
 
-    function loanAlreadyExists(address _bAddr, uint _loanId) public view returns (bool) {
+    function loanAlreadyExists(address _bAddr, uint256 _loanId) public view returns (bool) {
         Borrower memory borrower = borrowers[_bAddr];
-        for (uint i = 0; i < borrower.loans.length; i++) {
+        for (uint256 i = 0; i < borrower.loans.length; i++) {
             if (borrower.loans[i] == _loanId) {
                 return true;
             }
@@ -345,7 +345,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         return false;
     }
 
-    function checkDefault(uint _loanId) public view returns (bool) {
+    function checkDefault(uint256 _loanId) public view returns (bool) {
         Loan memory _loan = loans[_loanId];
         if (_loan.repaymentTime < block.timestamp && _loan.principal > _loan.amountRepaid) {
             return true;
@@ -354,10 +354,10 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         }
     }
 
-    function removeLoan(uint _loanId, address _borrower) internal {
-        uint[] storage borrowerLoans = borrowers[_borrower].loans;
-        uint index;
-        for (uint i = 0; i < borrowerLoans.length; i++) {
+    function removeLoan(uint256 _loanId, address _borrower) internal {
+        uint256[] storage borrowerLoans = borrowers[_borrower].loans;
+        uint256 index;
+        for (uint256 i = 0; i < borrowerLoans.length; i++) {
             if (borrowerLoans[i] == _loanId) {
                 index = i;
                 break;

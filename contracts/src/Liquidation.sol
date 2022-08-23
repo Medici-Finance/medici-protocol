@@ -9,15 +9,15 @@ import { IMediciPool } from "./interfaces/IMediciPool.sol";
 
 contract Liquidation is KeeperCompatibleInterface {
     IMediciPool public pool;
-    uint[] public badLoans;
+    uint256[] public badLoans;
     address private _keeperRegistryAddress;
 
     // TODO: checkUpkeep - check for loan deadline and default
     // TODO: performUpkeep - slash deposit from approver
     event KeeperRegistryAddressUpdated(address oldAddress, address newAddress);
-    event NewLoanApproved(address borrower, address approver, uint amount, uint repaymentTime);
-    event LoanDefault(address indexed borrower, address indexed approver, uint indexed amount);
-    event ApproverSlashed(address indexed approver, uint indexed amount);
+    event NewLoanApproved(address borrower, address approver, uint256 amount, uint256 repaymentTime);
+    event LoanDefault(address indexed borrower, address indexed approver, uint256 indexed amount);
+    event ApproverSlashed(address indexed approver, uint256 indexed amount);
 
     constructor(IMediciPool _pool, address keeperRegistryAddress) public {
         pool = _pool;
@@ -34,7 +34,7 @@ contract Liquidation is KeeperCompatibleInterface {
     }
 
 
-    function _slash(uint _loanId) internal {
+    function _slash(uint256 _loanId) internal {
 
     }
 
@@ -56,8 +56,8 @@ contract Liquidation is KeeperCompatibleInterface {
      * @param performData The abi encoded list of addresses to fund
      */
   function performUpkeep(bytes calldata performData) external override {
-    uint[] memory _underLoans = abi.decode(performData, (uint[]));
-    for (uint i = 0; i < _underLoans.length; i++) {
+    uint256[] memory _underLoans = abi.decode(performData, (uint256[]));
+    for (uint256 i = 0; i < _underLoans.length; i++) {
         _slash(_underLoans[i]);
     }
   }
