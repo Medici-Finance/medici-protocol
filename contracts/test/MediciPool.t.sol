@@ -221,6 +221,23 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         pool.approve(1);
         pool.withdraw(900e18);
         ( uint balance , , ,  ) = pool.approvers(address(this));
+
+        assertEq(usdc.balanceOf(address(this)), 900e18);
         assertEq(balance, 100e18);
+    }
+
+    function testWithdraw_poolShare() public {
+        pool.deposit(1000e18);
+        assertEq(pool.balanceOf(address(this)), 1000e18);
+
+        // verifyBorrower(adele);
+        vm.prank(adele);
+        pool.request(10e18, 30);
+
+        pool.approve(1);
+        pool.withdraw(900e18);
+        ( uint balance , , ,  ) = pool.approvers(address(this));
+        assertEq(balance, 100e18);
+        assertEq(pool.balanceOf(address(this)), 90909090909090909091);
     }
 }

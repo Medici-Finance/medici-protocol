@@ -216,19 +216,25 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit DepositMade(msg.sender, _amt, dToken);
     }
 
-    function withdraw(uint256 _amt) external {
-        require(_amt > 0, 'Must withdraw more than zero');
+    function withdraw(uint256 amount) external {
+        require(amount > 0, 'Must withdraw more than zero');
 
+        uint256 sharesToWithdraw = (amount * totalSupply()) / poolToken.balanceOf(address(this));
         Approver storage _approver = approvers[msg.sender];
         uint256 withdrawable = _approver.balance - _approver.currentlyApproved;
-        require(withdrawable >= _amt, 'Not enough balance');
-        uint256 withdrawShare = getPoolShare(_amt);
+        require(withdrawable >= amount, 'Not enough balance');
 
-        _approver.balance -= _amt;
+        _approver.balance -= amount;
         updateApproverReputation(msg.sender);
 
-        doUSDCTransfer(address(this), msg.sender, _amt);
-        emit WithdrawalMade(msg.sender, _amt, withdrawShare);
+        doUSDCTransfer(address(this), msg.sender, amount);
+
+        if (balanceOf(msg.sender) >= sharesToWithdraw) {
+            _burn(msg.sender, sharesToWithdraw);
+        } else {
+            _burn(msg.sender, balanceOf(msg.sender));
+        }
+        emit WithdrawalMade(msg.sender, amount, sharesToWithdraw);
     }
 
     function approve(uint256 _loanId) public onlyApprover {
@@ -254,7 +260,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
         approvers[msg.sender].currentlyApproved += loan.principal;
 
-        bool success = doUSDCTransfer(address(this), msg.sender, loan.principal);
+        bool success = doUSDCTransfer(address(this), loan.borrower, loan.principal);
         require(success, 'Failed to transfer for borrow');
 
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.principal);
