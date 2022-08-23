@@ -13,3 +13,7 @@ Borrowers can request a loan from one consolidated pool and register their World
 ## How is it made?
 
 This project uses WorldCoin for the WorldID and Polygon to deploy on. We use CheckWorldID to check for unique loan requests. In the future, we'll use Chainlink keepers to slash/liquidate approvers and graph for checking on-chain reputation.
+
+## UML class diagram for the contract
+
+![UML diagram](contracts/classDiagram.svg)
