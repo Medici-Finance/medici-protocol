@@ -22,7 +22,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     function verifyBorrower(address borrower) internal returns (bool){
         registerIdentity(); // this simulates a World ID "verified" identity
 
-        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+        (uint nullifierHash, uint[8] memory proof) = getProof(
             address(ph),
             borrower
         );
@@ -45,11 +45,11 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         ph = new Personhood(worldID);
 
         pool = new MediciPool(usdc, address(ph), 90, 2e17);
-        usdc.approve(address(pool), type(uint256).max);
+        usdc.approve(address(pool), type(uint).max);
         vm.prank(adele);
-        usdc.approve(address(pool), type(uint256).max);
+        usdc.approve(address(pool), type(uint).max);
         vm.prank(bob);
-        usdc.approve(address(pool), type(uint256).max);
+        usdc.approve(address(pool), type(uint).max);
     }
 
     function testInitPool() public {
@@ -60,7 +60,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
     function testDeposit() public {
         pool.deposit(1e18);
-        ( uint256 balance, , , uint256 currentlyApproved) = pool.approvers(address(this));
+        ( uint balance, , , uint currentlyApproved) = pool.approvers(address(this));
         assertEq(balance, 1e18);
         assertEq(currentlyApproved, 0);
     }
@@ -81,7 +81,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     function testCheckNewBorrower() public {
         // registerIdentity(); // this simulates a World ID "verified" identity
 
-        // (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+        // (uint nullifierHash, uint[8] memory proof) = getProof(
         //     address(ph),
         //     adele
         // );
@@ -99,11 +99,11 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     // function testDuplicateBorrower_Revert() public {
     //     verifyBorrower(adele);
 
-    //     (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+    //     (uint nullifierHash, uint[8] memory proof) = getProof(
     //         address(ph),
     //         adele
     //     );
-    //     uint256 root = getRoot();
+    //     uint root = getRoot();
     //     vm.expectRevert(abi.encodeWithSignature("InvalidNullifier()"));
     //     ph.checkNewBorrower(
     //         bob,
@@ -120,11 +120,11 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         pool.request(10e18, 30);
         (
             address _borrower,
-            uint256 _principal,
-            uint256 _amountRepaid,
+            uint _principal,
+            uint _amountRepaid,
             address _approver,
-            uint256 _durationDays,
-            uint256 _repaymentTime
+            uint _durationDays,
+            uint _repaymentTime
         ) = pool.loans(1);
         assertEq(_borrower, adele);
         assertEq(_principal, 10e18);
@@ -140,10 +140,10 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     //     pool.request(10e18, 10e6);
     //     (
     //         address _borrower,
-    //         uint256 _principal,
-    //         uint256 _amountRepaid,
+    //         uint _principal,
+    //         uint _amountRepaid,
     //         address _approver,
-    //         uint256 _repaymentTime
+    //         uint _repaymentTime
     //     ) = pool.loans(1);
     //     vm.stopPrank();
     // }
@@ -151,7 +151,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     function testApprove() public {
         // sanity
         pool.deposit(1000e18);
-        (, , uint256 approvalLimit, uint256 currentlyApproved) = pool.approvers(address(this));
+        (, , uint approvalLimit, uint currentlyApproved) = pool.approvers(address(this));
         assertEq(approvalLimit, 1000e18);
         assertEq(currentlyApproved, 0);
 
@@ -161,11 +161,11 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 
         pool.approve(1);
 
-        (, , , address _approver, , uint256 _repayTime) = pool.loans(1);
+        (, , , address _approver, , uint _repayTime) = pool.loans(1);
         assertEq(_approver, address(this));
         assertEq(_repayTime, block.timestamp + 2_592_000);
 
-        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(adele);
+        ( , uint currentlyBorrowed,  ) = pool.borrowers(adele);
         assertEq(currentlyBorrowed, 10e18);
         assertEq(pool.getBorrowerLoan(adele, 0), 1);
 
@@ -204,10 +204,10 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         pool.repay(1, 10e18);
 
         assertEq(pool.getBorrowerLoan(adele, 0), 0);
-        ( , uint256 currentlyBorrowed,  ) = pool.borrowers(adele);
+        ( , uint currentlyBorrowed,  ) = pool.borrowers(adele);
         assertEq(currentlyBorrowed, 0);
 
-        ( ,,, uint256 currentlyApproved ) = pool.approvers(address(this));
+        ( ,,, uint currentlyApproved ) = pool.approvers(address(this));
         assertEq(currentlyApproved, 0);
     }
 

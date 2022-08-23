@@ -2,33 +2,33 @@
 pragma solidity 0.8.15;
 
 struct Borrower {
-    uint256 borrowLimit;
-    uint256 currentlyBorrowed;
-    uint256 reputation;
-    uint256[] loans;
+    uint borrowLimit;
+    uint currentlyBorrowed;
+    uint reputation;
+    uint[] loans;
 }
 
 struct Loan {
     address borrower;
-    uint256 principal;
-    uint256 amountRepaid;
+    uint principal;
+    uint amountRepaid;
     address approver;
-    uint256 duration;
-    uint256 repaymentTime;
+    uint duration;
+    uint repaymentTime;
 }
 
 struct Approver {
-    uint256 balance;
-    uint256 reputation;
-    uint256 approvalLimit;
-    uint256 currentlyApproved;
+    uint balance;
+    uint reputation;
+    uint approvalLimit;
+    uint currentlyApproved;
 }
 
 interface IMediciPool {
-    function deposit(uint256 _amt) external;
-    function withdraw(uint256 _amt) external;
-    function request(uint256 _amt, uint256 duration) external;
-    function approve(uint256 _loanId) external;
-    function repay(uint256 _loanId, uint256 _amt) external;
-    function getBadLoans() external returns (uint256[] memory);
+    function deposit(uint _amt) external;
+    function withdraw(uint _amt) external;
+    function request(uint _amt, uint duration) external;
+    function approve(uint _loanId) external;
+    function repay(uint _loanId, uint _amt) external;
+    function getBadLoans() external returns (uint[] memory);
 }

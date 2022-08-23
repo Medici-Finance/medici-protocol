@@ -15,7 +15,7 @@ contract BaseTest is Test
     function _makeAddress(string memory aName) internal returns (address)
     {
         address lAddress = address(
-            uint160(uint256(
+            uint160(uint(
                 keccak256(abi.encodePacked(aName))
             ))
         );

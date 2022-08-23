@@ -7,16 +7,16 @@ contract HelperConfig {
     struct NetworkConfig {
         address oracle;
         bytes32 jobId;
-        uint256 chainlinkFee;
+        uint chainlinkFee;
         address link;
-        uint256 updateInterval;
+        uint updateInterval;
         address priceFeed;
         uint64 subscriptionId;
         address vrfCoordinator;
         bytes32 keyHash;
     }
 
-    mapping(uint256 => NetworkConfig) public chainIdToNetworkConfig;
+    mapping(uint => NetworkConfig) public chainIdToNetworkConfig;
 
     constructor() {
         chainIdToNetworkConfig[4] = getRinkebyEthConfig();

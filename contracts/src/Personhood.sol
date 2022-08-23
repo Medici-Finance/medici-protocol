@@ -18,12 +18,12 @@ contract Personhood {
     IWorldID internal immutable worldId;
 
     /// @dev The World ID group ID (always 1)
-    uint256 internal immutable groupId = 1;
+    uint internal immutable groupId = 1;
 
     string private _actionID;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-    mapping(uint256 => address) internal nullifierHashes;
+    mapping(uint => address) internal nullifierHashes;
     mapping(address => bool) internal addressVerified;
 
     /// @param _worldId The WorldID instance that will verify the proofs
@@ -41,9 +41,9 @@ contract Personhood {
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
     function checkNewBorrower(
         address borrower,
-        uint256 root,
-        uint256 nullifierHash,
-        uint256[8] calldata proof
+        uint root,
+        uint nullifierHash,
+        uint[8] calldata proof
     ) public returns (bool) {
         // make sure person hasn't already signed up using a different address
         if (nullifierHashes[nullifierHash] != address(0)
