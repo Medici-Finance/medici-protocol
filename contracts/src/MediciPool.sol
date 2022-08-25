@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.15;
 
 import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
 import { IMediciPool } from "./interfaces/IMediciPool.sol";
