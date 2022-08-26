@@ -44,7 +44,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         setUpWorldID();
         ph = new Personhood(worldID);
 
-        pool = new MediciPool(usdc, address(ph), 90, 2e17);
+        pool = new MediciPool(usdc, address(ph), address(ph), 90, 2e17);
         usdc.approve(address(pool), type(uint256).max);
         vm.prank(adele);
         usdc.approve(address(pool), type(uint256).max);

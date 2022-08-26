@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
 import { IMediciPool } from "./interfaces/IMediciPool.sol";
+import { RiskManager } from "./RiskManager.sol";
 import { Counters } from '@openzeppelin/contracts/utils/Counters.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import { ERC20Upgradeable } from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
@@ -16,7 +17,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     using Counters for Counters.Counter;
     ERC20 public poolToken;
     Personhood ph;
-    address USDCAddress = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
+    address rManager;
 
     uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
@@ -50,9 +51,10 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Constructor
      *************************************************************************/
 
-    constructor(ERC20 _poolToken, address _phAddr, uint256 _maxDuration, uint256 _lendingRate) public {
+    constructor(ERC20 _poolToken, address _phAddr, address _rm, uint256 _maxDuration, uint256 _lendingRate) public {
         poolToken = _poolToken;
         ph = Personhood(_phAddr);
+        rManager = _rm;
         initialize(_lendingRate, _maxDuration );
     }
 
@@ -179,7 +181,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
     }
 
 
-    function getBadLoans() public returns (uint256[] memory) {
+    function getBadLoans() override public returns (uint256[] memory) {
 
         for (uint256 i = 0; i < currentLoans.length; i++) {
             if (checkDefault(currentLoans[i])) {
@@ -195,28 +197,20 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Core Functions
      *************************************************************************/
 
-    function deposit(uint256 _amt) external {
+    function deposit(uint256 _amt) external override {
         require(_amt > 0, 'Must deposit more than zero');
 
         bool success = doUSDCTransfer(msg.sender, address(this), _amt);
         require(success, 'Failed to transfer for deposit');
 
-        uint256 rep = getReputation();
-
-        if (approvers[msg.sender].balance == 0) {
-            approvers[msg.sender] = Approver(_amt, rep, _amt, 0);
-        } else {
-            approvers[msg.sender].balance += _amt;
-            approvers[msg.sender].approvalLimit += _amt;
-            approvers[msg.sender].reputation = rep;
-        }
+        // (bool update, bytes memory returnData) = rManager.delegatecall(abi.encodeWithSelector(keccak256("updateOnDeposit(uint256)"), _amt));
 
         uint dToken = getPoolShare(_amt);
         _mint(msg.sender, dToken);
         emit DepositMade(msg.sender, _amt, dToken);
     }
 
-    function withdraw(uint256 amount) external {
+    function withdraw(uint256 amount) external override {
         require(amount > 0, 'Must withdraw more than zero');
 
         uint256 sharesToWithdraw = (amount * totalSupply()) / poolToken.balanceOf(address(this));
@@ -237,7 +231,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit WithdrawalMade(msg.sender, amount, sharesToWithdraw);
     }
 
-    function approve(uint256 _loanId) public onlyApprover {
+    function approve(uint256 _loanId) external override onlyApprover {
         Loan storage loan = loans[_loanId];
         require(loan.principal > 0, 'Invalid loan');
         require(loan.approver == address(0), 'Loan already approved');
@@ -266,7 +260,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.principal);
     }
 
-    function request(uint256 _amt, uint256 durationDays) external uniqueBorrower(msg.sender) {
+    function request(uint256 _amt, uint256 durationDays) external override uniqueBorrower(msg.sender) {
         require(_amt > 0, 'Must borrow more than zero');
         require(durationDays > 0 && durationDays <= maxTimePeriod, "ERROR: invalid time period for the loan request");
 
@@ -288,7 +282,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         emit NewLoanRequest(msg.sender, loanId, _amt);
     }
 
-    function repay(uint256 _loanId, uint256 _amt) external {
+    function repay(uint256 _loanId, uint256 _amt) external override {
         require(_amt > 0, 'Must borrow more than zero');
 
         Loan storage loan = loans[_loanId];
