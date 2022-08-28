@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
 import { IMediciPool } from "./interfaces/IMediciPool.sol";
+import { BasePool } from "./BasePool.sol";
 import { RiskManager } from "./RiskManager.sol";
 import { Counters } from '@openzeppelin/contracts/utils/Counters.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
@@ -13,7 +14,7 @@ import 'forge-std/Vm.sol';
 import './helpers/Math.sol';
 import './Personhood.sol';
 
-contract MediciPool is ERC20Upgradeable, IMediciPool {
+contract MediciPool is BasePool, IMediciPool, ERC20Upgradeable {
     using Counters for Counters.Counter;
     ERC20 public poolToken;
     Personhood ph;
@@ -21,17 +22,6 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
 
     uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
-
-    mapping(address => Approver) public approvers;
-    mapping(address => Borrower) public borrowers;
-    mapping(uint256 => Loan) public loans;
-    uint256[] public currentLoans;
-    uint256[] public bLoans;
-
-    uint256 public poolDeposits;
-    uint256 public maxLoanAmount;
-    uint256 public maxTimePeriod; //in days
-    uint256 public minPoolAllocation; // per 10^18
 
     /**************************************************************************
      * Events
@@ -203,7 +193,7 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
         bool success = doUSDCTransfer(msg.sender, address(this), _amt);
         require(success, 'Failed to transfer for deposit');
 
-        // (bool update, bytes memory returnData) = rManager.delegatecall(abi.encodeWithSelector(keccak256("updateOnDeposit(uint256)"), _amt));
+        (bool update, bytes memory result) = rManager.delegatecall(abi.encodeWithSignature("updateOnDeposit(uint256)", _amt));
 
         uint dToken = getPoolShare(_amt);
         _mint(msg.sender, dToken);
@@ -309,30 +299,16 @@ contract MediciPool is ERC20Upgradeable, IMediciPool {
      * Internal Functions
      *************************************************************************/
 
-    function getReputation() public view returns (uint256) {
-        return 200;
-    }
-
-    function getBorrowLimit(uint256 _reputation) public view returns (uint256) {
-        return 1000e18;
-    }
-
-    function getApprovalLimit(uint256 _reputation) public view returns (uint256) {
-        return 1000e18;
-    }
-
     function updateBorrowerReputation(address _ba) public {
         Borrower storage _borrower = borrowers[_ba];
-        uint256 _rep = getReputation();
-        _borrower.reputation = _rep;
-        _borrower.borrowLimit = getBorrowLimit(_rep);
+        _borrower.reputation = 200;
+        _borrower.borrowLimit = 1000e18;
     }
 
     function updateApproverReputation(address _aa) public {
         Approver storage _approver = approvers[_aa];
-        uint256 _rep = getReputation();
-        _approver.reputation = _rep;
-        _approver.approvalLimit = getApprovalLimit(_rep);
+        _approver.reputation = 200;
+        _approver.approvalLimit = 1000e18;
     }
 
     function loanAlreadyExists(address _bAddr, uint256 _loanId) public view returns (bool) {

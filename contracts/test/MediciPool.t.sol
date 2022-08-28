@@ -8,6 +8,7 @@ import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
 import { ERC20Mintable } from './helpers/ERC20Mintable.sol';
 import { Borrower } from '../src/interfaces/IMediciPool.sol';
 import { MediciPool } from '../src/MediciPool.sol';
+import { RiskManager } from '../src/RiskManager.sol';
 import { Personhood } from '../src/Personhood.sol';
 import { BaseTest } from '../src/helpers/BaseTest.sol';
 
@@ -17,6 +18,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     Vm internal hevm = Vm(HEVM_ADDRESS);
 
     MediciPool internal pool;
+    RiskManager internal riskManager;
     ERC20Mintable internal usdc;
 
     function verifyBorrower(address borrower) internal returns (bool){
@@ -44,7 +46,8 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         setUpWorldID();
         ph = new Personhood(worldID);
 
-        pool = new MediciPool(usdc, address(ph), address(ph), 90, 2e17);
+        riskManager = new RiskManager();
+        pool = new MediciPool(usdc, address(ph), address(riskManager), 90, 2e17);
         usdc.approve(address(pool), type(uint256).max);
         vm.prank(adele);
         usdc.approve(address(pool), type(uint256).max);
