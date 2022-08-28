@@ -6,8 +6,11 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
+make: *** No rule to make target `all'.  Stop.
 
-# Make data base, printed on Tue Aug 16 16:31:21 2022
+
+# Make data base, printed on Wed Aug 24 18:35:21 2022
 
 # Variables
 
@@ -16,9 +19,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # automatic
 ?F = $(notdir $?)
 # environment
-ELECTRON_NO_ATTACH_CONSOLE = 1
-# environment
-NVM_INC = /Users/kunalarora/.nvm/versions/node/v18.3.0/include/node
+NVM_INC = /Users/kunalarora/.nvm/versions/node/v16.15.1/include/node
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
@@ -33,24 +34,23 @@ SHELL = /bin/sh
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
 _ = /usr/bin/make
+ 
 # makefile
 MAKEFILE_LIST := 
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_CWD = /Users/kunalarora/dev/future/hack/medici-finance
+VSCODE_CWD = /
 # environment
 ANDROID_SDK = /Users/kunalarora/Library/Android/sdk
 # environment
-PATH = /Users/kunalarora/Library/pnpm:/Users/kunalarora/.nvm/versions/node/v18.3.0/bin:/Users/kunalarora/Library/Android/sdk/platform-tools:/Users/kunalarora/Downloads/google-cloud-sdk/bin:/Users/kunalarora/opt/anaconda3/bin:/Users/kunalarora/opt/anaconda3/condabin:/Users/kunalarora/bin:/usr/local/bin:/usr/local/texlive/2020/bin/x86_64-darwin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/kunalarora/bin:/usr/local/bin:/Users/kunalarora/.local/share/solana/install/active_release/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/kunalarora/.cargo/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/kunalarora/.local/bin:/Users/kunalarora/Developer/flutter/bin:/Users/kunalarora/.foundry/bin:/Users/kunalarora/Library/Android/sdk/emulator:/Users/kunalarora/Library/Android/sdk/tools:/Users/kunalarora/Library/Android/sdk/tools/bin:/Users/kunalarora/Library/Android/sdk/platform-tools
+PATH = /Users/kunalarora/Library/pnpm:/Users/kunalarora/.nvm/versions/node/v16.15.1/bin:/Users/kunalarora/Library/Android/sdk/platform-tools:/Users/kunalarora/Downloads/google-cloud-sdk/bin:/Users/kunalarora/opt/anaconda3/bin:/Users/kunalarora/opt/anaconda3/condabin:/Users/kunalarora/bin:/usr/local/bin:/usr/local/texlive/2020/bin/x86_64-darwin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/kunalarora/bin:/usr/local/bin:/Users/kunalarora/.local/share/solana/install/active_release/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/kunalarora/.cargo/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/kunalarora/.local/bin:/Users/kunalarora/Developer/flutter/bin:/Users/kunalarora/.foundry/bin:/Users/kunalarora/Library/Android/sdk/emulator:/Users/kunalarora/Library/Android/sdk/tools:/Users/kunalarora/Library/Android/sdk/tools/bin:/Users/kunalarora/Library/Android/sdk/platform-tools
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
 PNPM_HOME = /Users/kunalarora/Library/pnpm
 # environment
-NVM_BIN = /Users/kunalarora/.nvm/versions/node/v18.3.0/bin
-# environment
-LaunchInstanceID = BF47B3FE-E59C-431A-BD0A-C9D0F7AFCF03
+NVM_BIN = /Users/kunalarora/.nvm/versions/node/v16.15.1/bin
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
@@ -60,11 +60,11 @@ ANDROID_HOME = /Users/kunalarora/Library/Android/sdk
 # environment
 PROXIMA_PACKAGE_TOKEN = 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
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.oaWeuKOaSU/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.xvyOqTbplE/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
-DISPLAY = /private/tmp/com.apple.launchd.q4Yg5b3jhG/org.macosforge.xquartz:0
+DISPLAY = /private/tmp/com.apple.launchd.iwJ0GDUWVP/org.macosforge.xquartz:0
 # environment
 CONDA_EXE = /Users/kunalarora/opt/anaconda3/bin/conda
 # environment
@@ -78,9 +78,7 @@ HOME = /Users/kunalarora
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CLI = 1
-# environment
-VSCODE_CODE_CACHE_PATH = /Users/kunalarora/Library/Application Support/Code/CachedData/da76f93349a72022ca4670c1b84860304616aaa2
+VSCODE_CODE_CACHE_PATH = /Users/kunalarora/Library/Application Support/Code/CachedData/e4503b30fc78200f846c62cf8091b76ff5547662
 # environment
 LOGNAME = kunalarora
 # environment
@@ -99,14 +97,12 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 CONDA_DEFAULT_ENV = base
 # environment
 XPC_FLAGS = 0x0
-# environment
-COLORTERM = truecolor
 # default
 MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
 # environment
-LC_TERMINAL = iTerm2
-# environment
-SHLVL = 3
+SHLVL = 1
 # environment
 SSH_KEY_PATH = ~/.ssh/rsa_id
 # default
@@ -115,10 +111,6 @@ MAKE_VERSION := 3.81
 USER = kunalarora
 # makefile
 .DEFAULT_GOAL := 
-# default
-MAKECMDGOALS := all
-# environment
-TERM_SESSION_ID = w0t0p0:D4BB829F-4D2D-44ED-A2B6-78368719C1CD
 # environment
 CLASSPATH = :/junit4.13.jar:.
 # environment
@@ -129,8 +121,6 @@ LESS = -R
 CONDA_SHLVL = 1
 # default
 MAKE_COMMAND := /Applications/Xcode.app/Contents/Developer/usr/bin/make
-# environment
-TERM_PROGRAM = iTerm.app
 # default
 .VARIABLES := 
 # environment
@@ -138,7 +128,7 @@ TMPDIR = /var/folders/qk/kkxv8xk901d3n4n2r0gcx_5h0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/kunalarora/Library/Application Support/Code/1.70.0-main.sock
+VSCODE_IPC_HOOK = /Users/kunalarora/Library/Application Support/Code/1.70.2-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -148,21 +138,13 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-TERM_PROGRAM_VERSION = 3.4.16
-# environment
 NVM_DIR = /Users/kunalarora/.nvm
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.154046926.154046933.A0CE6271-57FB-488F-AA53-359EC0737582
-# environment
-LC_TERMINAL_VERSION = 3.4.16
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.158645790.158645796
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
 +F = $(notdir $+)
-# environment
-ITERM_SESSION_ID = w0t0p0:D4BB829F-4D2D-44ED-A2B6-78368719C1CD
-# environment
-COLORFGBG = 15;0
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
 # environment
@@ -172,15 +154,11 @@ MAKEFILES :=
 # automatic
 <F = $(notdir $<)
 # environment
-ITERM_PROFILE = Default
-# environment
 PAGER = less
 # environment
 LC_ALL = C
 # environment
 CONDA_PYTHON_EXE = /Users/kunalarora/opt/anaconda3/bin/python
-# environment
-SECURITYSESSIONID = 186a3
 # automatic
 ^F = $(notdir $^)
 # default
@@ -194,15 +172,13 @@ MAKELEVEL := 0
 # environment
 CONDA_PREFIX = /Users/kunalarora/opt/anaconda3
 # environment
-TERM = xterm-256color
-# environment
-VSCODE_PID = 708
+VSCODE_PID = 4805
 # environment
 _CE_CONDA = 
 # environment
 LANG = C
 # variable set hash-table stats:
-# Load=95/1024=9%, Rehash=0, Collisions=5/116=4%
+# Load=81/1024=8%, Rehash=0, Collisions=2/102=2%
 
 # Pattern-specific Variable Values
 
@@ -210,7 +186,7 @@ LANG = C
 
 # Directories
 
-# . (device 16777221, inode 147646462): 12 files, no impossibilities.
+# . (device 16777225, inode 147646462): 12 files, no impossibilities.
 
 # 12 files, no impossibilities in 1 directories.
 
@@ -280,13 +256,10 @@ GNUmakefile:
 # No general (`VPATH' variable) search path.
 
 # # of strings in strcache: 0
- 
-make: *** No rule to make target `all'.  Stop.
-
 # # of strcache buffers: 0
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Tue Aug 16 16:31:21 2022
+# Finished Make data base on Wed Aug 24 18:35:21 2022
 
  

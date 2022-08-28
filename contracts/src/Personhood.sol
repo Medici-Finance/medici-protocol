@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.15;
 
 import { ByteHasher } from "./helpers/ByteHasher.sol";
 import { IWorldID } from "./interfaces/IWorldID.sol";
