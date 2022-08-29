@@ -64,10 +64,8 @@ contract MediciPool is BasePool, IMediciPool, ERC20Upgradeable {
         _;
     }
 
-    // TODO: fix worldID testing error
     modifier uniqueBorrower(address borrower) {
-        // require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
-        require(true);
+        require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
         _;
     }
 
@@ -102,12 +100,6 @@ contract MediciPool is BasePool, IMediciPool, ERC20Upgradeable {
     }
 
     function calcInterest(Loan memory _loan) public view returns (uint256) {
-        // (
-        //     ,
-        //     uint256 principal,
-        //     uint256 amountRepaid, ,
-        //     uint256 duration,
-        //     uint256 repaymentDate ) = _loan;
         uint _timePeriod = getTimePeriodDays(_loan.repaymentTime - _loan.duration);
         return Math.calculateInterest(_loan.principal - _loan.principal, lendingRateAPR, _timePeriod);
     }

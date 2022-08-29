@@ -16,7 +16,7 @@ update:; forge update
 # Build contracts and inject the Poseidon library.
 build:; forge build && node ./test/scripts/generate-circom-lib.js
 
-test :; forge test
+test :; forge test -vv
 
 snapshot :; forge snapshot
 
@@ -29,11 +29,16 @@ lint :; solhint src/**/*.sol && solhint src/*.sol
 
 anvil :; anvil -m 'test test test test test test test test test test test junk'
 
+build:; forge build && node ./test/scripts/generate-circom-lib.js
+
+deploy-personhood :; node --no-warnings script/personhood-deploy.js
+
 # use the "@" to hide the command from your shell
 deploy-rinkeby :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${RINKEBY_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY}  -vvvv
 
 
-deploy-testnet :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${TESTNET_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast -vvvv
+deploy-testnet :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${TESTNET_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast -vvvv --etherscan-api-key {ETHERSCAN_API_KEY} \
+    --verify
 
 # This is the private key of account from the mnemonic from the "make anvil" command
 deploy-anvil :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url http://localhost:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast

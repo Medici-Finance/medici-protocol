@@ -76,49 +76,46 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         vm.prank(adele);
         pool.deposit(1e18);
         assertEq(pool.balanceOf(adele), 1e18);
-
-
     }
 
-    // TODO: fix worldID testing
     function testCheckNewBorrower() public {
-        // registerIdentity(); // this simulates a World ID "verified" identity
+        registerIdentity(); // this simulates a World ID "verified" identity
 
-        // (uint256 nullifierHash, uint256[8] memory proof) = getProof(
-        //     address(ph),
-        //     adele
-        // );
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            adele
+        );
 
-        // ph.checkNewBorrower(
-        //     adele,
-        //     getRoot(),
-        //     nullifierHash,
-        //     proof
-        // );
-        // assertTrue(ph.checkAlreadyVerified(adele));
+        ph.checkNewBorrower(
+            adele,
+            getRoot(),
+            nullifierHash,
+            proof
+        );
+        assertTrue(ph.checkAlreadyVerified(adele));
         assertTrue(true);
     }
 
-    // function testDuplicateBorrower_Revert() public {
-    //     verifyBorrower(adele);
+    function testDuplicateBorrower_Revert() public {
+        verifyBorrower(adele);
 
-    //     (uint256 nullifierHash, uint256[8] memory proof) = getProof(
-    //         address(ph),
-    //         adele
-    //     );
-    //     uint256 root = getRoot();
-    //     vm.expectRevert(abi.encodeWithSignature("InvalidNullifier()"));
-    //     ph.checkNewBorrower(
-    //         bob,
-    //         root,
-    //         nullifierHash,
-    //         proof
-    //     );
-    // }
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(
+            address(ph),
+            adele
+        );
+        uint256 root = getRoot();
+        vm.expectRevert(abi.encodeWithSignature("InvalidNullifier()"));
+        ph.checkNewBorrower(
+            bob,
+            root,
+            nullifierHash,
+            proof
+        );
+    }
 
     function testRequest() public {
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.startPrank(adele);
         pool.request(10e18, 30);
         (
@@ -137,19 +134,20 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         vm.stopPrank();
     }
 
-    // function testRequestUnverified_Revert() public {
-    //     vm.startPrank(adele);
-    //     vm.expectRevert('ERROR: invalid worldID');
-    //     pool.request(10e18, 10e6);
-    //     (
-    //         address _borrower,
-    //         uint256 _principal,
-    //         uint256 _amountRepaid,
-    //         address _approver,
-    //         uint256 _repaymentTime
-    //     ) = pool.loans(1);
-    //     vm.stopPrank();
-    // }
+    function testRequestUnverified_Revert() public {
+        vm.startPrank(adele);
+        vm.expectRevert('ERROR: invalid worldID');
+        pool.request(10e18, 10e6);
+        (
+            address _borrower,
+            uint256 _principal,
+            uint256 _amountRepaid,
+            address _approver,
+            uint256 _durationDays,
+            uint256 _repaymentTime
+        ) = pool.loans(1);
+        vm.stopPrank();
+    }
 
     function testApprove() public {
         // sanity
@@ -158,7 +156,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         assertEq(approvalLimit, 1000e18);
         assertEq(currentlyApproved, 0);
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.prank(adele);
         pool.request(10e18, 30);
 
@@ -181,7 +179,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         // sanity
         pool.deposit(1000e18);
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.prank(adele);
         pool.request(10e18, 30);
 
@@ -196,7 +194,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         // sanity
         pool.deposit(1000e18);
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.prank(adele);
         pool.request(10e18, 30);
 
@@ -217,7 +215,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
     function testWithdraw() public {
         pool.deposit(1000e18);
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.prank(adele);
         pool.request(10e18, 30);
 
@@ -233,7 +231,7 @@ contract MediciPoolTest is BaseTest, InteractsWithWorldID {
         pool.deposit(1000e18);
         assertEq(pool.balanceOf(address(this)), 1000e18);
 
-        // verifyBorrower(adele);
+        verifyBorrower(adele);
         vm.prank(adele);
         pool.request(10e18, 30);
 
