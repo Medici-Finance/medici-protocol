@@ -41,8 +41,8 @@ contract MediciPool is BasePool, IMediciPool, ERC20Upgradeable {
      * Constructor
      *************************************************************************/
 
-    constructor(ERC20 _poolToken, address _phAddr, address _rm, uint256 _maxDuration, uint256 _lendingRate) public {
-        poolToken = _poolToken;
+    constructor(address _poolToken, address _phAddr, address _rm, uint256 _maxDuration, uint256 _lendingRate) public {
+        poolToken = ERC20(_poolToken);
         ph = Personhood(_phAddr);
         rManager = _rm;
         initialize(_lendingRate, _maxDuration );

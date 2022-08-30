@@ -16,7 +16,7 @@ contract DeployMediciPool is Script {
         vm.startBroadcast();
         RiskManager rm = new RiskManager();
         // Personhood ph = new Personhood(HelperConfig.worldID);
-        MediciPool pool = new MediciPool(ERC20(usdc_mumbai_address), personhood_mumbai, address(rm), 90, 2e17);
+        MediciPool pool = new MediciPool(usdc_mumbai_address, personhood_mumbai, address(rm), 90, 2e17);
         vm.stopBroadcast();
     }
 }
