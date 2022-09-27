@@ -23,8 +23,7 @@ contract Personhood {
     string private _actionID;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-    mapping(uint256 => address) internal nullifierHashes;
-    mapping(address => bool) internal addressVerified;
+    mapping(bytes32 => uint256) internal wAddressesVerified;
 
     /// @param _worldId The WorldID instance that will verify the proofs
     constructor(IWorldID _worldId) {
@@ -39,36 +38,63 @@ contract Personhood {
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
-    function checkNewBorrower(
-        address borrower,
+    function authenicate(
+        bytes32 borrower,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public returns (bool) {
         // make sure person hasn't already signed up using a different address
-        if (nullifierHashes[nullifierHash] != address(0)
-        && nullifierHashes[nullifierHash] != borrower)
-            revert InvalidNullifier();
+        require(
+            wAddressesVerified[wBorrower] == bytes32(0),
+            "Personhood: borrower already verified"
+        )
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
             root,
             groupId,
-            abi.encodePacked(borrower).hashToField(),
+            abi.encodePacked(wBorrower).hashToField(),
             nullifierHash,
             abi.encodePacked(address(this)).hashToField(),
             proof
         );
 
         // recording new user signup
-        nullifierHashes[nullifierHash] = borrower;
-        addressVerified[borrower] = true;
+        wAddressesVerified[wBorrower] = nullifierHash;
+        return true;
+    }
+
+    function authenicate(
+        bytes32 wBorrower,
+        uint256 root,
+        uint256 nullifierHash,
+        uint256[8] calldata proof
+    ) public returns (bool) {
+        // make sure person hasn't already signed up using a different address
+        require(
+            wAddressesVerified[wBorrower] == nullifierHash),
+            "Personhood: borrower not verified"
+        )
+
+        // We now verify the provided proof is valid and the user is verified by World ID
+        worldId.verifyProof(
+            root,
+            groupId,
+            abi.encodePacked(wBorrower).hashToField(),
+            nullifierHash,
+            abi.encodePacked(address(this)).hashToField(),
+            proof
+        );
+
+        // recording new user signup
+        wAddressesVerified[wBorrower] = bytes32(0);
         return true;
     }
 
     function checkAlreadyVerified(
-        address borrower
+        bytes32 borrower
     ) public view returns (bool) {
-        return addressVerified[borrower];
+        return addressVerified[borrower] != bytes32(0);
     }
 }
