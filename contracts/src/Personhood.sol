@@ -39,7 +39,7 @@ contract Personhood {
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
     function authenicate(
-        bytes32 borrower,
+        bytes32 wBorrower,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof

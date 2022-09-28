@@ -11,10 +11,10 @@ struct Borrower {
 struct Loan {
     address borrower;
     uint256 principal;
-    uint256 amountRepaid;
-    address approver;
-    uint256 duration;
+    uint256 tenor;
     uint256 repaymentTime;
+    address collateral;
+    uint256 collateralAmt;
 }
 
 struct Approver {
@@ -25,6 +25,8 @@ struct Approver {
 }
 
 interface IMediciPool {
+    uint256 public maxLoanAmount;
+
     function deposit(uint256 _amt) external;
     function withdraw(uint256 _amt) external;
     function request(uint256 _amt, uint256 duration) external;
