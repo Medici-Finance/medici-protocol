@@ -12,6 +12,7 @@ import "../interfaces/IMediciPool.sol";
 
 
 contract Periphery is PeripheryGov, PeripheryEvents {
+    using Loan for MediciStructs.Loan;
     using BytesLib for bytes;
 
     function request(
@@ -26,7 +27,7 @@ contract Periphery is PeripheryGov, PeripheryEvents {
     ) {
         require(tenor <= maxTimePeriod, "Loan tenor too long");
 
-        // check if coll token has a wrapped version on core chain
+        // TODO: check if coll token has a wrapped version on core chain
         // if yes, then approve and transfer the coll token to the core chain
 
         Loan memory loanReq = Loan({
@@ -40,7 +41,7 @@ contract Periphery is PeripheryGov, PeripheryEvents {
 
         wormholeSeq = wormhole.publishMessage{value: 0}(
             nonce,
-                Loan.encodeLoan(loanReq),
+                MediciStructs.encodeLoan(loanReq),
             consistencyLevel()
         );
     }
