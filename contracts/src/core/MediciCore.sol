@@ -10,14 +10,18 @@ contract MediciCore is CoreGov, CoreEvents {
 
     function initLoan(bytes memory loanReqVaa) external {
         /// @dev confirms that the message is from the Conductor and valid
-        (IWormhole.VM memory vm, bool valid, string memory reason) = wormhole().parseAndVerifyVM(saleInitVaa);
+        (IWormhole.VM memory vm, bool valid, string memory reason) = wormhole().parseAndVerifyVM(loanReqVaa);
 
         require(valid, reason);
         require(verifyEmitterVM(vm), "Invalid emitter");
 
         Loan memory loanReq = MediciLoans.parseLoan(vm.payload);
-        required(!s)
+        required(!loanAlreadyExists(loanReq.loanId));
 
+        require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
+        setLoan(loanReq);
+
+        emit LoanCreated(loanReq.loanId);
     }
 
     // @dev verifyConductorVM serves to validate VMs by checking against the known Conductor contract
@@ -30,4 +34,12 @@ contract MediciCore is CoreGov, CoreEvents {
 
         return false;
     }
+
+    function loanAlreadyExists(uint256 loanId) public view returns (bool) {
+        return loans[loanId] != bytes32(0);
+    }
+
+     // necessary for receiving native assets
+    receive() external payable {}
+
 }

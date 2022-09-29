@@ -22,8 +22,7 @@ contract Periphery is PeripheryGov, PeripheryEvents {
         uint256 collAmt
     ) external returns (
         uint256 loanID,
-        uint256 wormholeSeq,
-        uint256 wormholeSeq2
+        uint256 wormholeSeq
     ) {
         require(tenor <= maxTimePeriod, "Loan tenor too long");
 
@@ -31,29 +30,23 @@ contract Periphery is PeripheryGov, PeripheryEvents {
         // if yes, then approve and transfer the coll token to the core chain
 
         Loan memory loanReq = Loan({
-            borrower: msg.sender,
+            loanID: useLoanID(),
+            borrower: msg.sender                                  ,
             principal: loanAmt,
             tenor: tenor,
-            repaymentTime: 0
+            repaymentTime : 0
             collateral: coll,
             collateralAmt: collAmt
         });
 
         wormholeSeq = wormhole.publishMessage{value: 0}(
             nonce,
-                MediciStructs.encodeLoan(loanReq),
+            MediciStructs.encodeLoan(loanReq),
             consistencyLevel()
         );
+
+        emit PeriLoanCreated(loanReq.loanID, wormholeSeq);
     }
 
     function approve(uint256 _loanId) {}
-
-
-    function verifySignature(
-        bytes memory encodedHashData,
-        bytes memory sig,
-        address authority
-    ) internal pure returns (bool) {
-
-    }
 }
