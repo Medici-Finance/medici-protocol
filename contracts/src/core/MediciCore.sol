@@ -3,9 +3,12 @@
 pragma solidity 0.8.15;
 
 import "../helpers/BytesLib.sol";
+import { IWormhole } from "../wormhole/IWormhole.sol";
 
-contract MediciCore is CoreGov, CoreEvents {
-    using Loan for MediciStructs.Loan;
+import { MediciGov } from "./MediciGov.sol";
+import { MediciStructs } from "../MediciStructs.sol";
+
+contract MediciCore is MediciGov {
     using BytesLib for bytes;
 
     function initLoan(bytes memory loanReqVaa) external {
@@ -15,20 +18,20 @@ contract MediciCore is CoreGov, CoreEvents {
         require(valid, reason);
         require(verifyEmitterVM(vm), "Invalid emitter");
 
-        Loan memory loanReq = MediciLoans.parseLoan(vm.payload);
-        required(!loanAlreadyExists(loanReq.loanId));
+        MediciStructs.Loan memory loanReq = MediciStructs.parseLoan(vm.payload);
+        // require(!loanAlreadyExists(loanReq.loanId));
 
-        require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
+        // require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
         setLoan(loanReq);
 
-        emit LoanCreated(loanReq.loanId);
+        emit LoanCreated(getNextLoanID() - 1);
     }
 
     // @dev verifyConductorVM serves to validate VMs by checking against the known Conductor contract
     // TODO - for each chain
     function verifyEmitterVM(IWormhole.VM memory vm) internal view returns (bool) {
         // TODO: error
-        if (conductorContract() == vm.emitterAddress && conductorChainId() == vm.emitterChainId) {
+        if (getPeripheryContract(vm.emitterChainId) == vm.emitterAddress) {
             return true;
         }
 
@@ -36,7 +39,7 @@ contract MediciCore is CoreGov, CoreEvents {
     }
 
     function loanAlreadyExists(uint256 loanId) public view returns (bool) {
-        return loans[loanId] != bytes32(0);
+        return loanId < getNextLoanID();
     }
 
      // necessary for receiving native assets

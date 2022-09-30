@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import { ByteHasher } from "./helpers/ByteHasher.sol";
-import { IWorldID } from "./interfaces/IWorldID.sol";
+import { ByteHasher } from "../helpers/ByteHasher.sol";
+import { IWorldID } from "../interfaces/IWorldID.sol";
 
 contract Personhood {
     using ByteHasher for bytes;
@@ -34,7 +34,7 @@ contract Personhood {
         _actionID = _id;
     }
 
-    /// @param borrower An arbitrary input as signal from the user, usually the user's wallet address
+    /// @param wBorrower Wormhole address as an arbitrary input as signal from the user
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
@@ -46,9 +46,9 @@ contract Personhood {
     ) public returns (bool) {
         // make sure person hasn't already signed up using a different address
         require(
-            wAddressesVerified[wBorrower] == bytes32(0),
+            wAddressesVerified[wBorrower] == 0,
             "Personhood: borrower already verified"
-        )
+        );
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -65,7 +65,7 @@ contract Personhood {
         return true;
     }
 
-    function authenicate(
+    function deauthenicate(
         bytes32 wBorrower,
         uint256 root,
         uint256 nullifierHash,
@@ -73,9 +73,9 @@ contract Personhood {
     ) public returns (bool) {
         // make sure person hasn't already signed up using a different address
         require(
-            wAddressesVerified[wBorrower] == nullifierHash),
+            wAddressesVerified[wBorrower] == nullifierHash,
             "Personhood: borrower not verified"
-        )
+        );
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -88,13 +88,13 @@ contract Personhood {
         );
 
         // recording new user signup
-        wAddressesVerified[wBorrower] = bytes32(0);
+        wAddressesVerified[wBorrower] = 0;
         return true;
     }
 
     function checkAlreadyVerified(
         bytes32 borrower
     ) public view returns (bool) {
-        return addressVerified[borrower] != bytes32(0);
+        return wAddressesVerified[borrower] != 0;
     }
 }

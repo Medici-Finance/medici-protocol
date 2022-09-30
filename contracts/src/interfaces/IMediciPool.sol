@@ -25,8 +25,6 @@ struct Approver {
 }
 
 interface IMediciPool {
-    uint256 public maxLoanAmount;
-
     function deposit(uint256 _amt) external;
     function withdraw(uint256 _amt) external;
     function request(uint256 _amt, uint256 duration) external;

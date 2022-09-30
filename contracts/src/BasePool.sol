@@ -11,7 +11,6 @@ abstract contract BasePool {
     uint256[] public bLoans;
 
     uint256 public poolDeposits;
-    uint256 public maxLoanAmount;
     uint256 public maxTimePeriod; //in days
     uint256 public minPoolAllocation; // per 10^18
 }

@@ -43,7 +43,7 @@ const TopNav: FC = () => {
     ];
 
     useEffect(() => {
-        setWalletAddress({ walletAddress: address.toString() || '' });
+        setWalletAddress({ walletAddress: address?.toString() || '' });
         console.log(status, ' to wallet - ', walletAddress);
     }, [address]);
 

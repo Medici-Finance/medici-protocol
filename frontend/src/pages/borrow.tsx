@@ -93,7 +93,8 @@ function Borrow() {
     else console.log('Not connected');
 
     return (
-        <>{worldId.isEnabled() ? <BorrowDashboard /> : <WorldCoinButton />}</>
+        <WorldCoinButton />
+        // <>{worldId.isEnabled() ? <BorrowDashboard /> : <WorldCoinButton />}</>
         // {walletAddress && (
         //           <WorldIDComponent
         //             signal={walletAddress}
