@@ -10,17 +10,16 @@ contract Medici is Script {
     LocalConfig config;
     MediciCore core;
     Periphery periphery;
-    string Xconfig = vm.readFile("../xdapp.config.json");
+    // string Xconfig = vm.readFile("../xdapp.config.json");
 
 
     function run() public {
-        string memory password = vm.parseJson(Xconfig, "key");
-        console.log(password);
+        deployCore();
     }
 
     function deployCore() public {
-        uint256 deployerPrivateKey = vm.envUint("${local.polygon.deployerPrivateKey}");
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
         config = new LocalConfig();
         core = new MediciCore();
         vm.stopBroadcast();
