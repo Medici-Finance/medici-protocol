@@ -1,12 +1,12 @@
-// // SPDX-License-Identifier: UNLICENSED
-// pragma solidity 0.8.15;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 // import { KeeperCompatibleInterface } from "./interfaces/KeeperCompatibleInterface.sol";
 // import { Pausable } from "@openzeppelin/contracts/security/Pausable.sol";
 // import { Approver, Loan } from "./interfaces/IMediciPool.sol";
 // import { IMediciPool } from "./interfaces/IMediciPool.sol";
 
+contract Liquidation {}
 // contract Liquidation is KeeperCompatibleInterface {
 //     IMediciPool public pool;
 //     uint256[] public badLoans;
@@ -32,7 +32,6 @@
 //         emit KeeperRegistryAddressUpdated(_keeperRegistryAddress, keeperRegistryAddress);
 //         _keeperRegistryAddress = keeperRegistryAddress;
 //     }
-
 
 //     function _slash(uint256 _loanId) internal {
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import { ByteHasher } from "../helpers/ByteHasher.sol";
-import { IWorldID } from "../interfaces/IWorldID.sol";
+import {ByteHasher} from "../helpers/ByteHasher.sol";
+import {IWorldID} from "../interfaces/IWorldID.sol";
 
 contract Personhood {
     using ByteHasher for bytes;
@@ -38,17 +38,12 @@ contract Personhood {
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
-    function authenicate(
-        bytes32 wBorrower,
-        uint256 root,
-        uint256 nullifierHash,
-        uint256[8] calldata proof
-    ) public returns (bool) {
+    function authenicate(bytes32 wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+        public
+        returns (bool)
+    {
         // make sure person hasn't already signed up using a different address
-        require(
-            wAddressesVerified[wBorrower] == 0,
-            "Personhood: borrower already verified"
-        );
+        require(wAddressesVerified[wBorrower] == 0, "Personhood: borrower already verified");
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -65,17 +60,12 @@ contract Personhood {
         return true;
     }
 
-    function deauthenicate(
-        bytes32 wBorrower,
-        uint256 root,
-        uint256 nullifierHash,
-        uint256[8] calldata proof
-    ) public returns (bool) {
+    function deauthenicate(bytes32 wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+        public
+        returns (bool)
+    {
         // make sure person hasn't already signed up using a different address
-        require(
-            wAddressesVerified[wBorrower] == nullifierHash,
-            "Personhood: borrower not verified"
-        );
+        require(wAddressesVerified[wBorrower] == nullifierHash, "Personhood: borrower not verified");
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -92,9 +82,8 @@ contract Personhood {
         return true;
     }
 
-    function checkAlreadyVerified(
-        bytes32 borrower
-    ) public view returns (bool) {
-        return wAddressesVerified[borrower] != 0;
+    function getPerson(bytes32 wBorrower) public view returns (uint256 nullifierHash) {
+        require(wAddressesVerified[wBorrower] != 0, "Personhood: borrower not verified");
+        return wAddressesVerified[wBorrower];
     }
 }

@@ -18,7 +18,7 @@
       "deployedAddress": "",
       "emittedVAAs": []
     },
-    "bsc": {
+    "avalanche": {
       "type": "evm",
       "wormholeChainId": 4,
       "rpc": "http://localhost:8547",
@@ -109,5 +109,6 @@
   },
   "wormhole": {
     "restAddress": "http://localhost:7071"
-  }
+  },
+  "key": "value"
 }

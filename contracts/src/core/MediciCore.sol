@@ -3,10 +3,10 @@
 pragma solidity 0.8.15;
 
 import "../helpers/BytesLib.sol";
-import { IWormhole } from "../wormhole/IWormhole.sol";
+import {IWormhole} from "../wormhole/IWormhole.sol";
 
-import { MediciGov } from "./MediciGov.sol";
-import { MediciStructs } from "../MediciStructs.sol";
+import {MediciGov} from "./MediciGov.sol";
+import {MediciStructs} from "../MediciStructs.sol";
 
 contract MediciCore is MediciGov {
     using BytesLib for bytes;
@@ -42,7 +42,6 @@ contract MediciCore is MediciGov {
         return loanId < getNextLoanID();
     }
 
-     // necessary for receiving native assets
+    // necessary for receiving native assets
     receive() external payable {}
-
 }

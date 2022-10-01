@@ -1,5 +1,5 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.15;
 
 // import 'forge-std/console.sol';
 // import 'forge-std/vm.sol';
@@ -11,7 +11,6 @@
 // import { RiskManager } from '../src/RiskManager.sol';
 // import { Personhood } from '../src/core/Personhood.sol';
 // import { BaseTest } from '../src/helpers/BaseTest.sol';
-
 
 // contract MediciPoolTest is BaseTest, InteractsWithWorldID {
 //     Personhood internal ph;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
+import {Approver, Borrower, Loan} from "./interfaces/IMediciPool.sol";
 
 abstract contract BasePool {
     mapping(address => Approver) public approvers;

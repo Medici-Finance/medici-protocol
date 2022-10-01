@@ -21,19 +21,11 @@ library Math {
         }
     }
 
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 z
-    ) public pure returns (uint256) {
+    function mulDiv(uint256 x, uint256 y, uint256 z) public pure returns (uint256) {
         return (x * y) / z;
     }
 
-    function calculateInterest(
-        uint256 principal,
-        uint256 interest,
-        uint256 period
-    ) public pure returns (uint256) {
-        return mulDiv(principal, mulDiv(interest, period, 365), 10**18);
+    function calculateInterest(uint256 principal, uint256 interest, uint256 period) public pure returns (uint256) {
+        return mulDiv(principal, mulDiv(interest, period, 365), 10 ** 18);
     }
 }

@@ -1,5 +1,5 @@
-// // SPDX-License-Identifier: UNLICENSED
-// pragma solidity 0.8.15;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 // import { Approver, Borrower, Loan } from "./interfaces/IMediciPool.sol";
 // import { IMediciPool } from "./interfaces/IMediciPool.sol";
@@ -155,14 +155,12 @@
 //         return _days * 24 * 60 * 60;
 //     }
 
-
 //     function getBorrowerLoan(address _borrower, uint256 _index) public view returns (uint256) {
 //         if (_index >= borrowers[_borrower].loans.length) {
 //             return 0;
 //         }
 //         return borrowers[_borrower].loans[_index];
 //     }
-
 
 //     function getBadLoans() override public returns (uint256[] memory) {
 

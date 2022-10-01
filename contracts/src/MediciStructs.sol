@@ -4,6 +4,7 @@ import "./helpers/BytesLib.sol";
 
 library MediciStructs {
     using BytesLib for bytes;
+
     struct Loan {
         address borrower;
         uint256 principal;
@@ -21,12 +22,7 @@ library MediciStructs {
 
     function encodeLoan(Loan memory _loan) public pure returns (bytes memory) {
         return abi.encodePacked(
-            _loan.borrower,
-            _loan.principal,
-            _loan.tenor,
-            _loan.repaymentTime,
-            _loan.collateral,
-            _loan.collateralAmt
+            _loan.borrower, _loan.principal, _loan.tenor, _loan.repaymentTime, _loan.collateral, _loan.collateralAmt
         );
     }
 

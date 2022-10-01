@@ -15,11 +15,8 @@ contract PeripheryStorage {
 
     struct State {
         Provider provider;
-
         address owner;
-
         uint32 nonce;
-
         uint256 maxTenor;
     }
 }
@@ -29,23 +26,23 @@ contract PeripheryState {
 
     event PeripheryLoanRequest(uint32 nonce);
 
-    function consistencyLevel() public returns (uint8) {
+    function consistencyLevel() public view returns (uint8) {
         return _state.provider.consistencyLevel;
     }
 
-    function wormhole() public returns (IWormhole) {
+    function wormhole() public view returns (IWormhole) {
         return IWormhole(_state.provider.wormhole);
     }
 
-    function owner() public returns (address) {
+    function owner() public view returns (address) {
         return _state.owner;
     }
 
-    function maxTenor() public returns (uint256) {
+    function maxTenor() public view returns (uint256) {
         return _state.maxTenor;
     }
 
-    function nonce() public returns (uint32) {
+    function nonce() public view returns (uint32) {
         return _state.nonce;
     }
 
