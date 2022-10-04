@@ -4,6 +4,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/Openzeppelin/openzeppelin-contracts
-[submodule "contracts/lib/zk-kit"]
-	path = contracts/lib/zk-kit
+[submodule "lib/zk-kit"]
+	path = lib/zk-kit
 	url = https://github.com/appliedzkp/zk-kit

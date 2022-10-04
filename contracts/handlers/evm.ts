@@ -35,7 +35,7 @@ export async function deploy(src: string, core: boolean) {
   const scriptFn = core ? 'DeployCore' : 'DeployPeriphery';
 
   const { stdout, stderr } = await exec(
-    `cd src/core && forge build && forge script test/Medici.s.sol:${scriptFn} --rpc-url ${network.rpc}  --private-key ${network.privateKey} --broadcast -vvvv`
+    `forge script test/Medici.s.sol:Medici --rpc-url ${network.rpc} --broadcast -vvv`
   );
 
   if (stderr) {
