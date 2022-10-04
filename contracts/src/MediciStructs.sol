@@ -8,7 +8,7 @@ library MediciStructs {
 
     struct Loan {
         bytes borrower;
-        uint256 riskProfile;
+        uint256 worldID;
         uint256 principal;
         uint256 tenor;
         uint256 repaymentTime;
@@ -25,7 +25,7 @@ library MediciStructs {
     function encodeLoan(Loan memory _loan) public pure returns (bytes memory) {
         return abi.encodePacked(
             _loan.borrower,
-            _loan.riskProfile,
+            _loan.worldID,
             _loan.principal,
             _loan.tenor,
             _loan.repaymentTime,
@@ -40,7 +40,7 @@ library MediciStructs {
         loan.borrower = encoded.slice(index, 34);
         index += 34;
 
-        loan.riskProfile = encoded.toUint256(index);
+        loan.worldID = encoded.toUint256(index);
         index += 32;
 
         loan.principal = encoded.toUint256(index);

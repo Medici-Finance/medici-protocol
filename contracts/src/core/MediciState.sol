@@ -28,6 +28,8 @@ contract MediciState {
 
     mapping( uint256 => uint256) public loans;
 
+    mapping( uint256 => MediciStructs.RiskProfile) public riskProfiles;
+
     event LoanCreated(uint256 loanId);
 
     // @dev individual wormhole addresses for each chain

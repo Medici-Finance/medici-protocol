@@ -23,7 +23,7 @@ contract Personhood {
     string private _actionID;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-    mapping(bytes32 => uint256) internal wAddressesVerified;
+    mapping(bytes => uint256) internal wAddressesVerified;
 
     /// @param _worldId The WorldID instance that will verify the proofs
     constructor(IWorldID _worldId) {
@@ -38,7 +38,7 @@ contract Personhood {
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
-    function authenicate(bytes32 wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+    function authenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
         public
         returns (bool)
     {
@@ -61,7 +61,7 @@ contract Personhood {
         return true;
     }
 
-    function deauthenicate(bytes32 wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+    function deauthenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
         public
         returns (bool)
     {
@@ -83,7 +83,7 @@ contract Personhood {
         return true;
     }
 
-    function getPerson(bytes32 wBorrower) public view returns (uint256 nullifierHash) {
+    function getPerson(bytes memory wBorrower) public view returns (uint256 nullifierHash) {
         require(wAddressesVerified[wBorrower] != 0, "Personhood: borrower not verified");
         return wAddressesVerified[wBorrower];
     }

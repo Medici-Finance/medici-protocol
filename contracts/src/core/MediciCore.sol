@@ -29,7 +29,7 @@ contract MediciCore is MediciGov {
         MediciStructs.Loan memory loanReq = MediciStructs.parseLoan(vm.payload);
         // require(!loanAlreadyExists(loanReq.loanId));
 
-        // loanReq.riskProfile = ph.getPerson(loanReq.borrower);
+        loanReq.worldID = ph.getPerson(loanReq.borrower);
 
         // require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
         setLoan(loanReq);

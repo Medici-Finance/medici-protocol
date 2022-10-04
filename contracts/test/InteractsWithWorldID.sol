@@ -44,7 +44,7 @@ contract InteractsWithWorldID {
         return abi.decode(returnData, (uint256));
     }
 
-    function getProof(address externalNullifier, bytes32 signal) internal returns (uint256, uint256[8] memory proof) {
+    function getProof(address externalNullifier, bytes memory signal) internal returns (uint256, uint256[8] memory proof) {
         // increase the length of the array if you have multiple parameters as signal
         string[] memory ffiArgs = new string[](6);
         ffiArgs[0] = "node";
@@ -53,7 +53,7 @@ contract InteractsWithWorldID {
 
         // duplicate (and update) this line for each parameter on your signal
         // make sure to update the array index for everything after too!
-        ffiArgs[3] = bytes32ToString(signal);
+        ffiArgs[3] = string(signal);
 
         // update your external nullifier here
         ffiArgs[4] = address(externalNullifier).toString();

@@ -31,7 +31,7 @@ contract Periphery is PeripheryGov {
 
         MediciStructs.Loan memory loanReq = MediciStructs.Loan({
             borrower: MediciStructs.encodeWAddress(chainID(), msg.sender),
-            riskProfile: 0,
+            worldID: 0,
             principal: loanAmt,
             tenor: tenor,
             repaymentTime: 0,
@@ -39,9 +39,10 @@ contract Periphery is PeripheryGov {
             collateralAmt: collAmt
         });
 
-        IWormhole wormhole = wormhole();
 
-        // wormholeSeq = wormhole.publishMessage{value: 0}
+
+        // TODO: pls fix this
+        // wormholeSeq = wormhole().publishMessage{value: 0}
         // (
         //     nonce(),
         //     MediciStructs.encodeLoan(loanReq),
@@ -52,6 +53,15 @@ contract Periphery is PeripheryGov {
 
 
         emit PeripheryLoanRequest(nonce() - 1);
+    }
+
+    function lend(uint256 loanId, address dtAddress, address amount) external returns (uint256 wormholeSeq) {
+        // TODO: issue dToken
+
+        // TODO: wormhole msg risk profile and add loans
+
+        // TODO: token transfer
+        wormholeSeq = 0;
     }
 
     function approve(uint256 _loanId) external {}
