@@ -16,6 +16,10 @@ import "./PeripheryGov.sol";
 contract Periphery is PeripheryGov {
     using BytesLib for bytes;
 
+    constructor() {
+        setMaxTenor(90 days);
+    }
+
     function request(uint256 loanAmt, uint256 tenor, address coll, uint256 collAmt)
         external
         returns (uint256 wormholeSeq)
@@ -26,7 +30,8 @@ contract Periphery is PeripheryGov {
         // if yes, then approve and transfer the coll token to the core chain
 
         MediciStructs.Loan memory loanReq = MediciStructs.Loan({
-            borrower: msg.sender,
+            borrower: MediciStructs.encodeWAddress(chainID(), msg.sender),
+            riskProfile: 0,
             principal: loanAmt,
             tenor: tenor,
             repaymentTime: 0,
@@ -36,8 +41,15 @@ contract Periphery is PeripheryGov {
 
         IWormhole wormhole = wormhole();
 
-        wormholeSeq = wormhole.publishMessage{value: 0}(nonce(), MediciStructs.encodeLoan(loanReq), consistencyLevel());
+        // wormholeSeq = wormhole.publishMessage{value: 0}
+        // (
+        //     nonce(),
+        //     MediciStructs.encodeLoan(loanReq),
+        //     consistencyLevel()
+        // );
         incrementNonce();
+        wormholeSeq = 0;
+
 
         emit PeripheryLoanRequest(nonce() - 1);
     }

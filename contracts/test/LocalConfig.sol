@@ -31,6 +31,10 @@ contract LocalConfig is InteractsWithWorldID {
         ph = new Personhood(worldID);
     }
 
+    function getPersonhoodAddress() public view returns (address) {
+        return address(ph);
+    }
+
     function verifyBorrower(bytes32 wBorrower) external returns (bool) {
         registerIdentity(); // this simulates a World ID "verified" identity
 

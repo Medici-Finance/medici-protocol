@@ -49,6 +49,7 @@ contract Personhood {
         worldId.verifyProof(
             root,
             groupId,
+            // TDOD: fix if unique signal needed
             abi.encodePacked(wBorrower).hashToField(),
             nullifierHash,
             abi.encodePacked(address(this)).hashToField(),

@@ -26,6 +26,10 @@ contract PeripheryState {
 
     event PeripheryLoanRequest(uint32 nonce);
 
+    function chainID() public view returns (uint16) {
+        return _state.provider.chainID;
+    }
+
     function consistencyLevel() public view returns (uint8) {
         return _state.provider.consistencyLevel;
     }
@@ -48,5 +52,9 @@ contract PeripheryState {
 
     function incrementNonce() public {
         _state.nonce++;
+    }
+
+    function setMaxTenor(uint _maxTenor) public {
+        _state.maxTenor = _maxTenor;
     }
 }

@@ -1,12 +1,14 @@
 pragma solidity 0.8.15;
 
 import "./helpers/BytesLib.sol";
+import "forge-std/console.sol";
 
 library MediciStructs {
     using BytesLib for bytes;
 
     struct Loan {
-        address borrower;
+        bytes borrower;
+        uint256 riskProfile;
         uint256 principal;
         uint256 tenor;
         uint256 repaymentTime;
@@ -22,15 +24,24 @@ library MediciStructs {
 
     function encodeLoan(Loan memory _loan) public pure returns (bytes memory) {
         return abi.encodePacked(
-            _loan.borrower, _loan.principal, _loan.tenor, _loan.repaymentTime, _loan.collateral, _loan.collateralAmt
+            _loan.borrower,
+            _loan.riskProfile,
+            _loan.principal,
+            _loan.tenor,
+            _loan.repaymentTime,
+            _loan.collateral,
+            _loan.collateralAmt
         );
     }
 
     function parseLoan(bytes memory encoded) public pure returns (Loan memory loan) {
         uint256 index = 0;
 
-        loan.borrower = encoded.toAddress(index);
-        index += 20;
+        loan.borrower = encoded.slice(index, 34);
+        index += 34;
+
+        loan.riskProfile = encoded.toUint256(index);
+        index += 32;
 
         loan.principal = encoded.toUint256(index);
         index += 32;
@@ -47,6 +58,23 @@ library MediciStructs {
         loan.collateralAmt = encoded.toUint256(index);
         index += 32;
     }
+
+    function encodeWAddress(uint16 _chainID, address _address) public returns (bytes memory) {
+        bytes memory addy = new bytes(32);
+        assembly {
+            mstore(add(addy, 32), _address)
+        }
+        return bytes.concat(toBytes(100), addy);
+    }
+
+    function toBytes(uint16 x) public returns (bytes memory c) {
+        bytes2 b = bytes2(x);
+        c = new bytes(2);
+        for (uint i=0; i < 2; i++) {
+            c[i] = b[i];
+        }
+    }
+
 
     /**
      * @dev verify and check if the emitter sender is worldId holder

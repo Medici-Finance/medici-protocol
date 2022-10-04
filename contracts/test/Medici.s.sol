@@ -21,7 +21,7 @@ contract Medici is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         config = new LocalConfig();
-        core = new MediciCore();
+        core = new MediciCore(config.getPersonhoodAddress());
         vm.stopBroadcast();
     }
 

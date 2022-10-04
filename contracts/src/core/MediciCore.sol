@@ -8,8 +8,16 @@ import {IWormhole} from "../wormhole/IWormhole.sol";
 import {MediciGov} from "./MediciGov.sol";
 import {MediciStructs} from "../MediciStructs.sol";
 
+import {Personhood} from "./Personhood.sol";
+
 contract MediciCore is MediciGov {
     using BytesLib for bytes;
+
+    Personhood ph;
+
+    constructor(address phAddr) {
+        ph = Personhood(phAddr);
+    }
 
     function initLoan(bytes memory loanReqVaa) external {
         /// @dev confirms that the message is from the Conductor and valid
@@ -20,6 +28,8 @@ contract MediciCore is MediciGov {
 
         MediciStructs.Loan memory loanReq = MediciStructs.parseLoan(vm.payload);
         // require(!loanAlreadyExists(loanReq.loanId));
+
+        // loanReq.riskProfile = ph.getPerson(loanReq.borrower);
 
         // require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
         setLoan(loanReq);

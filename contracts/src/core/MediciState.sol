@@ -26,6 +26,8 @@ contract MediciStorage {
 contract MediciState {
     MediciStorage.State _state;
 
+    mapping( uint256 => uint256) public loans;
+
     event LoanCreated(uint256 loanId);
 
     // @dev individual wormhole addresses for each chain
