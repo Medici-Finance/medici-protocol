@@ -1,4 +1,12 @@
-import { Box, Text, VStack } from '@chakra-ui/react';
+import {
+    Box,
+    Text,
+    Input,
+    Button,
+    Heading,
+    Stack,
+    VStack,
+} from '@chakra-ui/react';
 import type { VerificationResponse } from '@worldcoin/id';
 import worldId from '@worldcoin/id';
 import { useEffect, useState } from 'react';
@@ -34,7 +42,14 @@ const BorrowDashboard = () => {
 
 const WorldCoinButton: React.FC = () => {
     return (
-        <VStack width="100%" spacing={5}>
+        <VStack
+            bg={'gray.50'}
+            rounded={'xl'}
+            w="100%"
+            p={{ base: 4, sm: 6, md: 8 }}
+            spacing={{ base: 5 }}
+            maxW={{ lg: 'lg' }}
+        >
             <Text fontWeight="bold">Sign in with World Coin to borrow</Text>
             <Box id="world-coin-button"></Box>
         </VStack>
@@ -93,7 +108,87 @@ function Borrow() {
     else console.log('Not connected');
 
     return (
-        <>{worldId.isEnabled() ? <BorrowDashboard /> : <WorldCoinButton />}</>
+        <VStack spacing={5}>
+            <WorldCoinButton />
+            <Stack
+                bg={'gray.50'}
+                rounded={'xl'}
+                w="100%"
+                p={{ base: 4, sm: 6, md: 8 }}
+                spacing={{ base: 8 }}
+                maxW={{ lg: 'lg' }}
+            >
+                <Stack spacing={4}>
+                    <Heading
+                        color={'gray.800'}
+                        lineHeight={1.1}
+                        fontSize={{ base: '2xl', sm: '3xl', md: '4xl' }}
+                    >
+                        Borrow flexibly
+                        <Text
+                            as={'span'}
+                            bgGradient="linear(to-r, red.400,pink.400)"
+                            bgClip="text"
+                        >
+                            !
+                        </Text>
+                    </Heading>
+                    <Text
+                        color={'gray.500'}
+                        fontSize={{ base: 'sm', sm: 'md' }}
+                    >
+                        Pick your loan amount, APR and time period. We will
+                        match you with the best lender.
+                    </Text>
+                </Stack>
+                <Box as={'form'} mt={10}>
+                    <Stack spacing={4}>
+                        <Input
+                            placeholder="Loan Amount"
+                            bg={'gray.100'}
+                            border={0}
+                            color={'gray.500'}
+                            _placeholder={{
+                                color: 'gray.500',
+                            }}
+                        />
+                        <Input
+                            placeholder="APR"
+                            bg={'gray.100'}
+                            border={0}
+                            color={'gray.500'}
+                            _placeholder={{
+                                color: 'gray.500',
+                            }}
+                        />
+                        <Input
+                            placeholder="Time Period"
+                            bg={'gray.100'}
+                            border={0}
+                            color={'gray.500'}
+                            _placeholder={{
+                                color: 'gray.500',
+                            }}
+                        />
+                    </Stack>
+                    <Button
+                        fontFamily={'heading'}
+                        mt={8}
+                        w={'full'}
+                        bgGradient="linear(to-r, red.400,pink.400)"
+                        color={'white'}
+                        _hover={{
+                            bgGradient: 'linear(to-r, red.400,pink.400)',
+                            boxShadow: 'xl',
+                        }}
+                    >
+                        Request Loan
+                    </Button>
+                </Box>
+                form
+            </Stack>
+        </VStack>
+        // <>{worldId.isEnabled() ? <BorrowDashboard /> : <WorldCoinButton />}</>
         // {walletAddress && (
         //           <WorldIDComponent
         //             signal={walletAddress}

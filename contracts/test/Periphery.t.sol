@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// import 'forge-std/console.sol';
-// import 'forge-std/vm.sol';
+import 'forge-std/console.sol';
+import 'forge-std/Vm.sol';
 
 // import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
 // import { ERC20Mintable } from './helpers/ERC20Mintable.sol';
@@ -10,11 +10,14 @@ pragma solidity 0.8.15;
 // import { MediciPool } from '../src/MediciPool.sol';
 // import { RiskManager } from '../src/RiskManager.sol';
 // import { Personhood } from '../src/core/Personhood.sol';
-// import { BaseTest } from '../src/helpers/BaseTest.sol';
+import { BaseTest } from '../src/helpers/BaseTest.sol';
+import { Periphery } from '../src/periphery/Periphery.sol';
 
-// contract MediciPoolTest is BaseTest, InteractsWithWorldID {
+contract PeripheryTest is BaseTest {
 //     Personhood internal ph;
 //     Vm internal hevm = Vm(HEVM_ADDRESS);
+        Periphery phy;
+
 
 //     MediciPool internal pool;
 //     RiskManager internal riskManager;
@@ -36,23 +39,13 @@ pragma solidity 0.8.15;
 //         );
 //     }
 
-//     function setUp() public {
-//         usdc = new ERC20Mintable('USDC', 'USDC');
-//         usdc.mint(address(this), 1000e18);
-//         usdc.mint(adele, 1000e18);
-//         usdc.mint(bob, 1000e18);
+    function setUp() public {
+        phy = new Periphery();
+    }
 
-//         setUpWorldID();
-//         ph = new Personhood(worldID);
-
-//         riskManager = new RiskManager();
-//         pool = new MediciPool(address(usdc), address(ph), address(riskManager), 90, 2e17);
-//         usdc.approve(address(pool), type(uint256).max);
-//         vm.prank(adele);
-//         usdc.approve(address(pool), type(uint256).max);
-//         vm.prank(bob);
-//         usdc.approve(address(pool), type(uint256).max);
-//     }
+    function testInitLoan() public {
+        phy.request(1e6, 30, address(0), 0);
+    }
 
 //     function testInitPool() public {
 //         assertEq(pool.lendingRateAPR(), 2e17);
@@ -240,4 +233,4 @@ pragma solidity 0.8.15;
 //         assertEq(balance, 100e18);
 //         assertEq(pool.balanceOf(address(this)), 90909090909090909091);
 //     }
-// }
+}

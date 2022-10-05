@@ -2,15 +2,15 @@
 pragma solidity 0.8.15;
 
 import "forge-std/Vm.sol";
-import { IWorldID } from "../interfaces/IWorldID.sol";
-import { Semaphore } from "world-id-contracts/Semaphore.sol";
-import { TypeConverter } from "./TypeConverter.sol";
+import {IWorldID} from "../src/interfaces/IWorldID.sol";
+import {Personhood} from "../src/core/Personhood.sol";
+import {Semaphore} from "world-id-contracts/Semaphore.sol";
+import {TypeConverter} from "../src/helpers/TypeConverter.sol";
 
 contract InteractsWithWorldID {
     using TypeConverter for address;
 
-    Vm public wldVM =
-        Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
+    Vm public wldVM = Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
     Semaphore internal semaphore;
     IWorldID internal worldID;
 
@@ -44,10 +44,7 @@ contract InteractsWithWorldID {
         return abi.decode(returnData, (uint256));
     }
 
-    function getProof(address externalNullifier, address signal)
-        internal
-        returns (uint256, uint256[8] memory proof)
-    {
+    function getProof(address externalNullifier, bytes memory signal) internal returns (uint256, uint256[8] memory proof) {
         // increase the length of the array if you have multiple parameters as signal
         string[] memory ffiArgs = new string[](6);
         ffiArgs[0] = "node";
@@ -56,7 +53,7 @@ contract InteractsWithWorldID {
 
         // duplicate (and update) this line for each parameter on your signal
         // make sure to update the array index for everything after too!
-        ffiArgs[3] = address(signal).toString();
+        ffiArgs[3] = string(signal);
 
         // update your external nullifier here
         ffiArgs[4] = address(externalNullifier).toString();
@@ -64,5 +61,17 @@ contract InteractsWithWorldID {
         bytes memory returnData = wldVM.ffi(ffiArgs);
 
         return abi.decode(returnData, (uint256, uint256[8]));
+    }
+
+    function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
+        uint8 i = 0;
+        while (i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 }

@@ -1,20 +1,22 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.7;
+// // SPDX-License-Identifier: UNLICENSED
+// pragma solidity ^0.8.7;
 
-import "forge-std/Script.sol";
-import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import "../src/MediciPool.sol";
-import "./HelperConfig.sol";
+// import "forge-std/Script.sol";
+// import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+// import { MediciPool } from "../src/MediciPool.sol";
+// import { RiskManager } from "../src/RiskManager.sol";
+// import "./HelperConfig.sol";
 
-contract DeployMediciPool is Script {
-    uint8 constant DECIMALS = 18;
-    address usdc_goerli_address = 0x07865c6E87B9F70255377e024ace6630C1Eaa37F;
+// contract DeployMediciPool is Script {
+//     uint8 constant DECIMALS = 18;
+//     address usdc_mumbai_address = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
+//     address personhood_mumbai= 0x3722715eBDD73201809986c84b31ffF4b8171fE7;
 
-    function run() external {
-        vm.startBroadcast();
-        ERC20 usdcToken = ERC20(usdc_goerli_address);
-        // Personhood ph = new Personhood(HelperConfig.worldID);
-        MediciPool pool = new MediciPool(usdcToken, address(usdcToken), address(usdcToken),90, 2e17);
-        vm.stopBroadcast();
-    }
-}
+//     function run() external {
+//         vm.startBroadcast();
+//         RiskManager rm = new RiskManager();
+//         // Personhood ph = new Personhood(HelperConfig.worldID);
+//         MediciPool pool = new MediciPool(usdc_mumbai_address, personhood_mumbai, address(rm), 90, 2e17);
+//         vm.stopBroadcast();
+//     }
+// }
