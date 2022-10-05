@@ -35,7 +35,9 @@ export async function deploy(src: string, core: boolean) {
   const scriptFn = core ? 'DeployCore' : 'DeployPeriphery';
 
   const { stdout, stderr } = await exec(
-    `forge script test/Medici.s.sol:Medici --rpc-url ${network.rpc} --broadcast -vvv`
+    `forge script test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} -g 1000 --json`
+    // `forge build && forge create test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} --broadcast -vvv`,
+    // `forge build && forge create --legacy --rpc-url ${network.rpc} --private-key ${network.privateKey} test/LocalConfig.sol:LocalConfig src/core/MediciCore.sol:MediciCore && exit`
   );
 
   if (stderr) {

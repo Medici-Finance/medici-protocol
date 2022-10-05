@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import 'forge-std/console.sol';
-import 'forge-std/vm.sol';
+import 'forge-std/Vm.sol';
 
 // import { InteractsWithWorldID } from "../src/helpers/InteractsWithWorldID.sol";
 // import { ERC20Mintable } from './helpers/ERC20Mintable.sol';
