@@ -58,6 +58,7 @@ contract Periphery is PeripheryGov {
     function lend(uint256 loanId, address dtAddress, address amount) external returns (uint256 wormholeSeq) {
         // TODO: issue dToken
 
+
         // TODO: wormhole msg risk profile and add loans
 
         // TODO: token transfer
