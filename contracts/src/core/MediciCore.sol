@@ -15,8 +15,8 @@ contract MediciCore is MediciGov {
 
     Personhood ph;
 
-    constructor(address phAddr) {
-        ph = Personhood(phAddr);
+    constructor(address _ph) {
+        ph = Personhood(_ph);
     }
 
     function initLoan(bytes memory loanReqVaa) external {
