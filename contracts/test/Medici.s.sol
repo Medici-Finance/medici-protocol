@@ -11,6 +11,7 @@ contract Medici is Script {
     MediciCore core;
     Periphery periphery;
     // string Xconfig = vm.readFile("../xdapp.config.json");
+    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
 
     function run() public {
@@ -18,7 +19,6 @@ contract Medici is Script {
     }
 
     function deployCore() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         config = new LocalConfig();
         core = new MediciCore(config.getPersonhoodAddress());
@@ -26,7 +26,7 @@ contract Medici is Script {
     }
 
     function deployPeriphery() public {
-        vm.startBroadcast();
+        vm.startBroadcast(deployerPrivateKey);
         periphery = new Periphery();
         vm.stopBroadcast();
     }

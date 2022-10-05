@@ -12,8 +12,10 @@ import {
   tryNativeToUint8Array,
 } from '@certusone/wormhole-sdk';
 import * as ethers from 'ethers';
-import fetch from 'node-fetch';
 import { promisify } from 'util';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const exec = promisify(require('child_process').exec);
 const config = JSON.parse(fs.readFileSync('./xdapp.config.json').toString());
@@ -26,19 +28,22 @@ const config = JSON.parse(fs.readFileSync('./xdapp.config.json').toString());
 //   // The only time this fails is when deploy hasn't been called, in which case, this isn't needed
 // }
 
+// `forge script test/Medici.s.sol:Medici --legacy --rpc-url ${} -g 1000 --json`,
+
+// `forge build && forge create test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} --broadcast -vvv`,
+// `forge build && forge create --legacy --rpc-url ${network.rpc} --private-key ${network.privateKey} test/LocalConfig.sol:LocalConfig src/core/MediciCore.sol:MediciCore && exit`
+
 /**
  * 1. Deploy on chain core contract
- * @param src The network to deploy
+ * @param chain The network to deploy
  */
-export async function deploy(src: string, core: boolean) {
-  const network = config.local[src];
-  const scriptFn = core ? 'DeployCore' : 'DeployPeriphery';
+export async function deploy(chain: string, core: boolean) {
+  const network = config.testnet[chain];
+  const scriptFn = core ? 'deployCore' : 'deployPeriphery';
 
-  const { stdout, stderr } = await exec(
-    `forge script test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} -g 1000 --json`
-    // `forge build && forge create test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} --broadcast -vvv`,
-    // `forge build && forge create --legacy --rpc-url ${network.rpc} --private-key ${network.privateKey} test/LocalConfig.sol:LocalConfig src/core/MediciCore.sol:MediciCore && exit`
-  );
+  const script = `forge script test/Medici.s.sol:Medici --sig "${scriptFn}()" --rpc-url ${network.rpc} --broadcast -vvv`;
+
+  const { stdout, stderr } = await exec(script);
 
   if (stderr) {
     throw new Error(stderr);
@@ -46,16 +51,20 @@ export async function deploy(src: string, core: boolean) {
 
   let deploymentAddress;
   if (stdout) {
-    console.log(stdout);
-    deploymentAddress = stdout.split('Deployed to: ')[1].split('\n')[0].trim();
+    let tx = JSON.parse(fs.readFileSync('./broadcast/Medici.s.sol/5/deployCore-latest.json').toString()).transactions;
+    for (const t of tx) {
+      if (t.contractName === 'MediciCore') {
+        deploymentAddress = t.contractAddress;
+      }
+    }
+    const emittedVAAs = []; //Resets the emittedVAAs
+
     fs.writeFileSync(
-      `./deployinfo/${src}.deploy.json`,
+      `./deployinfo/${chain}.deploy.json`,
       JSON.stringify(
         {
           address: deploymentAddress,
-          tokenAddress: deploymentAddress,
-          tokenReceipientAddress: deploymentAddress,
-          vaas: [],
+          vaas: emittedVAAs,
         },
         null,
         4
@@ -65,10 +74,8 @@ export async function deploy(src: string, core: boolean) {
 }
 
 export async function registerApp(src: string, target: string) {
-  const key = fs.readFileSync(`keypairs/${src}.key`).toString();
-
-  const srcNetwork = config.local[src];
-  const targetNetwork = config.local[target];
+  const srcNetwork = config.testnet[src];
+  const targetNetwork = config.testnet[target];
   let srcDeploymentInfo;
   let targetDeploymentInfo;
   let targetEmitter;
@@ -95,12 +102,20 @@ export async function registerApp(src: string, target: string) {
       break;
   }
 
+  console.log(targetDeploymentInfo['address']);
   const emitterBuffer = Buffer.from(targetEmitter, 'hex');
-  const signer = new ethers.Wallet(key).connect(new ethers.providers.JsonRpcProvider(srcNetwork.rpc));
+  console.log('this works');
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
+    new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
+  );
+  console.log('this also works');
+  const core = new ethers.Contract(
+    srcDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+    signer
+  );
 
-  // const core = new ethers.Contract(srcDeploymentInfo.address, ABI, signer);
-
-  // const tx = await core.registerApplicationContracts(targetNetwork.wormholeChainId, emitterBuffer);
+  const tx = await core.registerChain(targetNetwork.wormholeChainId, emitterBuffer);
   console.log(`Registered ${target} application on ${src}`);
 }
 
