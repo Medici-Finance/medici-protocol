@@ -1,71 +1,70 @@
-// pragma solidity 0.8.15;
+pragma solidity 0.8.15;
 
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IMToken} from "../interfaces/IMToken.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {WadRayMath} from './WadRayMath.sol';
+import {MediciCore} from '../core/MediciCore.sol';
 
-// import {MediciCore} from '../core/MediciCore.sol';
+/**
+ * @title Medici ERC20 MToken
+ * @dev Implementation of the interest bearing token for the Medici protocol
+ * @author Kunal
+ */
+contract MToken is  IMToken, ERC20 {
+    using WadRayMath for uint256;
+  uint256 public constant MTOKEN_REVISION = 0x1;
 
-// /**
-//  * @title Medici ERC20 MToken
-//  * @dev Implementation of the interest bearing token for the Medici protocol
-//  * @author Kunal
-//  */
-// contract MToken is IERC20 {
+// TODO: move to common token
+  string private _name;
+  string private _symbol;
+  uint8 private _decimals;
 
-//   uint256 public constant MTOKEN_REVISION = 0x1;
+  MediciCore internal _pool;
+  address internal _underlyingAsset;
 
-//   MediciCore internal _pool;
-//   address internal _treasury;
-//   address internal _underlyingAsset;
-
-//   modifier onlyCore {
-//     require(msg.sender == address(_pool), "ERROR: only core permitted");
-//     _;
-//   }
+  modifier onlyCore {
+    require(msg.sender == address(_pool), "ERROR: only core permitted");
+    _;
+  }
 
 
-//   /**
-//    * @dev Initializes the mToken
-//    * @param pool interface of the core contract storing funds
-//    * @param treasury The address of the Medici treasury, receiving the fees on this mToken
-//    * @param underlyingAsset The address of the underlying asset of this mToken (E.g. USDC for mUSDC)
-//    * @param mTokenDecimals The decimals of the mToken, same as the underlying asset's
-//    * @param mTokenName The name of the mToken
-//    * @param mTokenSymbol The symbol of the mToken
-//    */
-// //   function initialize(
-// //     MediciCore pool,
-// //     address treasury,
-// //     address underlyingAsset,
-// //     uint8 mTokenDecimals,
-// //     string calldata mTokenName,
-// //     string calldata mTokenSymbol,
-// //     bytes calldata params
-// //   ) external  {
-// //     uint256 chainId;
 
-// //     assembly {
-// //       chainId := chainid()
-// //     }
 
-// //     _setName(mTokenName);
-// //     _setSymbol(mTokenSymbol);
-// //     _setDecimals(mTokenDecimals);
+  /**
+   * @dev Initializes the mToken
+   * @param pool interface of the core contract storing funds
+   * @param underlyingAsset The address of the underlying asset of this mToken (E.g. USDC for mUSDC)
+   * @param mTokenDecimals The decimals of the mToken, same as the underlying asset's
+   * @param mTokenName The name of the mToken
+   * @param mTokenSymbol The symbol of the mToken
+   */
+  constructor (
+    MediciCore pool,
+    address treasury,
+    address underlyingAsset,
+    uint8 mTokenDecimals,
+    string memory mTokenName,
+    string memory mTokenSymbol
+  ) ERC20(mTokenName, mTokenSymbol) {
+    uint256 chainId;
 
-// //     _pool = pool;
-// //     _treasury = treasury;
-// //     _underlyingAsset = underlyingAsset;
+    assembly {
+      chainId := chainid()
+    }
 
-// //     emit Initialized(
-// //       underlyingAsset,
-// //       address(pool),
-// //       treasury,
-// //       address(incentivesController),
-// //       mTokenDecimals,
-// //       mTokenName,
-// //       mTokenSymbol,
-// //       params
-// //     );
-// //   }
+    _setDecimals(mTokenDecimals);
+
+    _pool = pool;
+    _underlyingAsset = underlyingAsset;
+
+    emit Initialized(
+      underlyingAsset,
+      address(pool),
+      mTokenDecimals,
+      mTokenName,
+      mTokenSymbol
+    );
+  }
 
 //   /**
 //    * @dev Burns mTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
@@ -91,30 +90,30 @@
 //     emit Burn(user, receiverOfUnderlying, amount, index);
 //   }
 
-//   /**
-//    * @dev Mints `amount` mTokens to `user`
-//    * - Only callable by the MediciCore, as extra state updates there need to be managed
-//    * @param user The address receiving the minted tokens
-//    * @param amount The amount of tokens getting minted
-//    * @param index The new liquidity index of the reserve
-//    * @return `true` if the the previous balance of the user was 0
-//    */
-//   function mint(
-//     address user,
-//     uint256 amount,
-//     uint256 index
-//   ) external override onlyCore returns (bool) {
-//     uint256 previousBalance = super.balanceOf(user);
+  /**
+   * @dev Mints `amount` mTokens to `user`
+   * - Only callable by the MediciCore, as extra state updates there need to be managed
+   * @param user The address receiving the minted tokens
+   * @param amount The amount of tokens getting minted
+   * @param index The new liquidity index of the reserve
+   * @return `true` if the the previous balance of the user was 0
+   */
+  function mint(
+    address user,
+    uint256 amount,
+    uint256 index
+  ) external override onlyCore returns (bool) {
+    uint256 previousBalance = super.balanceOf(user);
 
-//     uint256 amountScaled = amount.rayDiv(index);
-//     require(amountScaled != 0, "ERROR: invalid mint amount");
-//     _mint(user, amountScaled);
+    uint256 amountScaled = amount.rayDiv(index);
+    require(amountScaled != 0, "ERROR: invalid mint amount");
+    _mint(user, amountScaled);
 
-//     emit Transfer(address(0), user, amount);
-//     emit Mint(user, amount, index);
+    emit Transfer(address(0), user, amount);
+    emit Mint(user, amount, index);
 
-//     return previousBalance == 0;
-//   }
+    return previousBalance == 0;
+  }
 
 //   /**
 //    * @dev Mints mTokens to the reserve treasury
@@ -310,4 +309,16 @@
 //   ) internal override {
 //     _transfer(from, to, amount, true);
 //   }
-// }
+
+    function _setName(string memory newName) internal {
+    _name = newName;
+  }
+
+  function _setSymbol(string memory newSymbol) internal {
+    _symbol = newSymbol;
+  }
+
+  function _setDecimals(uint8 newDecimals) internal {
+    _decimals = newDecimals;
+  }
+}

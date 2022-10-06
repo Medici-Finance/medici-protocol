@@ -13,3 +13,6 @@
 [submodule "contracts/lib/zk-kit"]
 	path = contracts/lib/zk-kit
 	url = https://github.com/appliedzkp/zk-kit
+[submodule "contracts/lib/ds-math"]
+	path = contracts/lib/ds-math
+	url = https://github.com/dapphub/ds-math

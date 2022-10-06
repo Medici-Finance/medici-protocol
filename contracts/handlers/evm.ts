@@ -73,7 +73,7 @@ export async function deploy(chain: string, core: boolean) {
   }
 }
 
-export async function registerApp(src: string, target: string) {
+export async function registerApp(src: string, target: string, isCore: boolean) {
   const srcNetwork = config.testnet[src];
   const targetNetwork = config.testnet[target];
   let srcDeploymentInfo;
@@ -104,18 +104,27 @@ export async function registerApp(src: string, target: string) {
 
   console.log(targetDeploymentInfo['address']);
   const emitterBuffer = Buffer.from(targetEmitter, 'hex');
-  console.log('this works');
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
     new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
   );
-  console.log('this also works');
-  const core = new ethers.Contract(
-    srcDeploymentInfo.address,
-    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
-    signer
-  );
 
-  const tx = await core.registerChain(targetNetwork.wormholeChainId, emitterBuffer);
+  if (isCore) {
+    const core = new ethers.Contract(
+      srcDeploymentInfo.address,
+      JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+      signer
+    );
+
+    const tx = await core.registerChain(targetNetwork.wormholeChainId, emitterBuffer);
+  } else {
+    const periphery = new ethers.Contract(
+      srcDeploymentInfo.address,
+      JSON.parse(fs.readFileSync('./out/Periphery.sol/Periphery.json').toString()).abi,
+      signer
+    );
+
+    const tx = await periphery.registerCore(targetNetwork.wormholeChainId, emitterBuffer);
+  }
   console.log(`Registered ${target} application on ${src}`);
 }
 

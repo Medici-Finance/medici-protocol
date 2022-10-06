@@ -17,6 +17,7 @@ contract MediciCore is MediciGov {
 
     constructor(address _ph) {
         ph = Personhood(_ph);
+        _state.owner = msg.sender;
     }
 
     function initLoan(bytes memory loanReqVaa) external {
@@ -35,6 +36,13 @@ contract MediciCore is MediciGov {
         setLoan(loanReq);
 
         emit LoanCreated(getNextLoanID() - 1);
+    }
+
+    function receiveLoan() external {
+        // wrap transfer USDC token to borrower
+        // update riskProfile graph
+        // update repayment time
+
     }
 
     // @dev verifyConductorVM serves to validate VMs by checking against the known Conductor contract

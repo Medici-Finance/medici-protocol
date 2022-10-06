@@ -8,4 +8,13 @@ contract PeripheryGov is PeripheryState, ERC1967Upgrade {
         require(owner() == msg.sender, "Ownable: caller is not the owner");
         _;
     }
+
+    constructor() {
+        _state.owner = msg.sender;
+    }
+
+    function registerCore(uint16 coreChainID, bytes32 coreAddr) public onlyOwner {
+        require(coreAddr != bytes32(0), "Invalid address");
+        setCoreContract(coreChainID, coreAddr);
+    }
 }

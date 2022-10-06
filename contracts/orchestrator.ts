@@ -39,7 +39,8 @@ medici
   .description('Registers the target app and target token with the source on chain app')
   .argument('<src>', 'the network you want to register the app on')
   .argument('<target>', 'the network you want to register')
-  .action(async (src, target) => {
+  .argument('<node>', 'core or periphery')
+  .action(async (src: string, target: string, node: string) => {
     if (!config.testnet[src]) {
       console.error(`ERROR: ${src} not found in xdapp.config.json`);
       return;
@@ -59,7 +60,7 @@ medici
     }
 
     console.log(`Registering ${target} app and token onto ${src} network`);
-    await srcHandler.registerApp(src, target);
+    await srcHandler.registerApp(src, target, node === 'core');
   });
 
 medici.parse(process.argv);
