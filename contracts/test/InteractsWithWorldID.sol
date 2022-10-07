@@ -44,7 +44,10 @@ contract InteractsWithWorldID {
         return abi.decode(returnData, (uint256));
     }
 
-    function getProof(address externalNullifier, bytes memory signal) internal returns (uint256, uint256[8] memory proof) {
+    function getProof(address externalNullifier, bytes memory signal)
+        internal
+        returns (uint256, uint256[8] memory proof)
+    {
         // increase the length of the array if you have multiple parameters as signal
         string[] memory ffiArgs = new string[](6);
         ffiArgs[0] = "node";

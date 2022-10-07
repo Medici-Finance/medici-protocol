@@ -15,4 +15,3 @@ library TestChainID {
     uint16 constant fuji = 6;
     uint16 constant aurora = 9;
 }
-

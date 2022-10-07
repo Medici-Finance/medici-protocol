@@ -63,4 +63,6 @@ medici
     await srcHandler.registerApp(src, target, node === 'core');
   });
 
+medici;
+
 medici.parse(process.argv);

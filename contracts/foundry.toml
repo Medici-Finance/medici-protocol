@@ -5,7 +5,7 @@ script = 'script'
 out = 'out'
 libs = ['lib']
 ffi = true
-fs_permissions = [{ access = "read", path = "./"}]
+fs_permissions = [{ access = "read", path = "../xdapp.config.json"}]
 remappings = [
     '@openzeppelin-upgradeable=lib/openzeppelin-contracts-upgradeable/',
     '@openzeppelin/=lib/openzeppelin-contracts/'

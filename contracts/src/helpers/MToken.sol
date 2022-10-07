@@ -2,323 +2,311 @@ pragma solidity 0.8.15;
 
 import {IMToken} from "../interfaces/IMToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {WadRayMath} from './WadRayMath.sol';
-import {MediciCore} from '../core/MediciCore.sol';
+import {WadRayMath} from "./WadRayMath.sol";
+import {MediciCore} from "../core/MediciCore.sol";
 
 /**
  * @title Medici ERC20 MToken
  * @dev Implementation of the interest bearing token for the Medici protocol
  * @author Kunal
  */
-contract MToken is  IMToken, ERC20 {
+contract MToken is IMToken, ERC20 {
     using WadRayMath for uint256;
-  uint256 public constant MTOKEN_REVISION = 0x1;
 
-// TODO: move to common token
-  string private _name;
-  string private _symbol;
-  uint8 private _decimals;
+    uint256 public constant MTOKEN_REVISION = 0x1;
 
-  MediciCore internal _pool;
-  address internal _underlyingAsset;
+    // TODO: move to common token
+    string private _name;
+    string private _symbol;
+    uint8 private _decimals;
 
-  modifier onlyCore {
-    require(msg.sender == address(_pool), "ERROR: only core permitted");
-    _;
-  }
+    MediciCore internal _pool;
+    address internal _underlyingAsset;
 
-
-
-
-  /**
-   * @dev Initializes the mToken
-   * @param pool interface of the core contract storing funds
-   * @param underlyingAsset The address of the underlying asset of this mToken (E.g. USDC for mUSDC)
-   * @param mTokenDecimals The decimals of the mToken, same as the underlying asset's
-   * @param mTokenName The name of the mToken
-   * @param mTokenSymbol The symbol of the mToken
-   */
-  constructor (
-    MediciCore pool,
-    address treasury,
-    address underlyingAsset,
-    uint8 mTokenDecimals,
-    string memory mTokenName,
-    string memory mTokenSymbol
-  ) ERC20(mTokenName, mTokenSymbol) {
-    uint256 chainId;
-
-    assembly {
-      chainId := chainid()
+    modifier onlyCore() {
+        require(msg.sender == address(_pool), "ERROR: only core permitted");
+        _;
     }
 
-    _setDecimals(mTokenDecimals);
+    /**
+     * @dev Initializes the mToken
+     * @param pool interface of the core contract storing funds
+     * @param underlyingAsset The address of the underlying asset of this mToken (E.g. USDC for mUSDC)
+     * @param mTokenDecimals The decimals of the mToken, same as the underlying asset's
+     * @param mTokenName The name of the mToken
+     * @param mTokenSymbol The symbol of the mToken
+     */
+    constructor(
+        MediciCore pool,
+        address treasury,
+        address underlyingAsset,
+        uint8 mTokenDecimals,
+        string memory mTokenName,
+        string memory mTokenSymbol
+    ) ERC20(mTokenName, mTokenSymbol) {
+        uint256 chainId;
 
-    _pool = pool;
-    _underlyingAsset = underlyingAsset;
+        assembly {
+            chainId := chainid()
+        }
 
-    emit Initialized(
-      underlyingAsset,
-      address(pool),
-      mTokenDecimals,
-      mTokenName,
-      mTokenSymbol
-    );
-  }
+        _setDecimals(mTokenDecimals);
 
-//   /**
-//    * @dev Burns mTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
-//    * - Only callable by the LendingPool, as extra state updates there need to be managed
-//    * @param user The owner of the mTokens, getting them burned
-//    * @param receiverOfUnderlying The address that will receive the underlying
-//    * @param amount The amount being burned
-//    * @param index The new liquidity index of the reserve
-//    **/
-//   function burn(
-//     address user,
-//     address receiverOfUnderlying,
-//     uint256 amount,
-//     uint256 index
-//   ) external override onlyCore {
-//     uint256 amountScaled = amount.rayDiv(index);
-//     require(amountScaled != 0,"Error: invalid amount");
-//     _burn(user, amountScaled);
+        _pool = pool;
+        _underlyingAsset = underlyingAsset;
 
-//     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
+        emit Initialized(underlyingAsset, address(pool), mTokenDecimals, mTokenName, mTokenSymbol);
+    }
 
-//     emit Transfer(user, address(0), amount);
-//     emit Burn(user, receiverOfUnderlying, amount, index);
-//   }
+    //   /**
+    //    * @dev Burns mTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
+    //    * - Only callable by the LendingPool, as extra state updates there need to be managed
+    //    * @param user The owner of the mTokens, getting them burned
+    //    * @param receiverOfUnderlying The address that will receive the underlying
+    //    * @param amount The amount being burned
+    //    * @param index The new liquidity index of the reserve
+    //    **/
+    //   function burn(
+    //     address user,
+    //     address receiverOfUnderlying,
+    //     uint256 amount,
+    //     uint256 index
+    //   ) external override onlyCore {
+    //     uint256 amountScaled = amount.rayDiv(index);
+    //     require(amountScaled != 0,"Error: invalid amount");
+    //     _burn(user, amountScaled);
 
-  /**
-   * @dev Mints `amount` mTokens to `user`
-   * - Only callable by the MediciCore, as extra state updates there need to be managed
-   * @param user The address receiving the minted tokens
-   * @param amount The amount of tokens getting minted
-   * @param index The new liquidity index of the reserve
-   * @return `true` if the the previous balance of the user was 0
-   */
-  function mint(
-    address user,
-    uint256 amount,
-    uint256 index
-  ) external override onlyCore returns (bool) {
-    uint256 previousBalance = super.balanceOf(user);
+    //     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
-    uint256 amountScaled = amount.rayDiv(index);
-    require(amountScaled != 0, "ERROR: invalid mint amount");
-    _mint(user, amountScaled);
+    //     emit Transfer(user, address(0), amount);
+    //     emit Burn(user, receiverOfUnderlying, amount, index);
+    //   }
 
-    emit Transfer(address(0), user, amount);
-    emit Mint(user, amount, index);
+    /**
+     * @dev Mints `amount` mTokens to `user`
+     * - Only callable by the MediciCore, as extra state updates there need to be managed
+     * @param user The address receiving the minted tokens
+     * @param amount The amount of tokens getting minted
+     * @param index The new liquidity index of the reserve
+     * @return `true` if the the previous balance of the user was 0
+     */
+    function mint(address user, uint256 amount, uint256 index) external override onlyCore returns (bool) {
+        uint256 previousBalance = super.balanceOf(user);
 
-    return previousBalance == 0;
-  }
+        uint256 amountScaled = amount.rayDiv(index);
+        require(amountScaled != 0, "ERROR: invalid mint amount");
+        _mint(user, amountScaled);
 
-//   /**
-//    * @dev Mints mTokens to the reserve treasury
-//    * - Only callable by the LendingPool
-//    * @param amount The amount of tokens getting minted
-//    * @param index The new liquidity index of the reserve
-//    */
-//   function mintToTreasury(uint256 amount, uint256 index) external override onlyCore {
-//     if (amount == 0) {
-//       return;
-//     }
+        emit Transfer(address(0), user, amount);
+        emit Mint(user, amount, index);
 
-//     address treasury = _treasury;
+        return previousBalance == 0;
+    }
 
-//     // Compared to the normal mint, we don't check for rounding errors.
-//     // The amount to mint can easily be very small since it is a fraction of the interest ccrued.
-//     // In that case, the treasury will experience a (very small) loss, but it
-//     // wont cause potentially valid transactions to fail.
-//     _mint(treasury, amount.rayDiv(index));
+    //   /**
+    //    * @dev Mints mTokens to the reserve treasury
+    //    * - Only callable by the LendingPool
+    //    * @param amount The amount of tokens getting minted
+    //    * @param index The new liquidity index of the reserve
+    //    */
+    //   function mintToTreasury(uint256 amount, uint256 index) external override onlyCore {
+    //     if (amount == 0) {
+    //       return;
+    //     }
 
-//     emit Transfer(address(0), treasury, amount);
-//     emit Mint(treasury, amount, index);
-//   }
+    //     address treasury = _treasury;
 
-//   /**
-//    * @dev Transfers mTokens in the event of a borrow being liquidated, in case the liquidators reclaims the mToken
-//    * - Only callable by the LendingPool
-//    * @param from The address getting liquidated, current owner of the mTokens
-//    * @param to The recipient
-//    * @param value The amount of tokens getting transferred
-//    **/
-//   function transferOnLiquidation(
-//     address from,
-//     address to,
-//     uint256 value
-//   ) external override onlyCore {
-//     // Being a normal transfer, the Transfer() and BalanceTransfer() are emitted
-//     // so no need to emit a specific event here
-//     _transfer(from, to, value, false);
+    //     // Compared to the normal mint, we don't check for rounding errors.
+    //     // The amount to mint can easily be very small since it is a fraction of the interest ccrued.
+    //     // In that case, the treasury will experience a (very small) loss, but it
+    //     // wont cause potentially valid transactions to fail.
+    //     _mint(treasury, amount.rayDiv(index));
 
-//     emit Transfer(from, to, value);
-//   }
+    //     emit Transfer(address(0), treasury, amount);
+    //     emit Mint(treasury, amount, index);
+    //   }
 
-//   /**
-//    * @dev Calculates the balance of the user: principal balance + interest generated by the principal
-//    * @param user The user whose balance is calculated
-//    * @return The balance of the user
-//    **/
-//   function balanceOf(address user)
-//     public
-//     view
-//     override
-//     returns (uint256)
-//   {
-//     return super.balanceOf(user).rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
-//   }
+    //   /**
+    //    * @dev Transfers mTokens in the event of a borrow being liquidated, in case the liquidators reclaims the mToken
+    //    * - Only callable by the LendingPool
+    //    * @param from The address getting liquidated, current owner of the mTokens
+    //    * @param to The recipient
+    //    * @param value The amount of tokens getting transferred
+    //    **/
+    //   function transferOnLiquidation(
+    //     address from,
+    //     address to,
+    //     uint256 value
+    //   ) external override onlyCore {
+    //     // Being a normal transfer, the Transfer() and BalanceTransfer() are emitted
+    //     // so no need to emit a specific event here
+    //     _transfer(from, to, value, false);
 
-//   /**
-//    * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the
-//    * updated stored balance divided by the reserve's liquidity index at the moment of the update
-//    * @param user The user whose balance is calculated
-//    * @return The scaled balance of the user
-//    **/
-//   function scaledBalanceOf(address user) external view override returns (uint256) {
-//     return super.balanceOf(user);
-//   }
+    //     emit Transfer(from, to, value);
+    //   }
 
-//   /**
-//    * @dev Returns the scaled balance of the user and the scaled total supply.
-//    * @param user The address of the user
-//    * @return The scaled balance of the user
-//    * @return The scaled balance and the scaled total supply
-//    **/
-//   function getScaledUserBalanceAndSupply(address user)
-//     external
-//     view
-//     override
-//     returns (uint256, uint256)
-//   {
-//     return (super.balanceOf(user), super.totalSupply());
-//   }
+    //   /**
+    //    * @dev Calculates the balance of the user: principal balance + interest generated by the principal
+    //    * @param user The user whose balance is calculated
+    //    * @return The balance of the user
+    //    **/
+    //   function balanceOf(address user)
+    //     public
+    //     view
+    //     override
+    //     returns (uint256)
+    //   {
+    //     return super.balanceOf(user).rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
+    //   }
 
-//   /**
-//    * @dev calculates the total supply of the specific mToken
-//    * since the balance of every single user increases over time, the total supply
-//    * does that too.
-//    * @return the current total supply
-//    **/
-//   function totalSupply() public view override returns (uint256) {
-//     uint256 currentSupplyScaled = super.totalSupply();
+    //   /**
+    //    * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the
+    //    * updated stored balance divided by the reserve's liquidity index at the moment of the update
+    //    * @param user The user whose balance is calculated
+    //    * @return The scaled balance of the user
+    //    **/
+    //   function scaledBalanceOf(address user) external view override returns (uint256) {
+    //     return super.balanceOf(user);
+    //   }
 
-//     if (currentSupplyScaled == 0) {
-//       return 0;
-//     }
+    //   /**
+    //    * @dev Returns the scaled balance of the user and the scaled total supply.
+    //    * @param user The address of the user
+    //    * @return The scaled balance of the user
+    //    * @return The scaled balance and the scaled total supply
+    //    **/
+    //   function getScaledUserBalanceAndSupply(address user)
+    //     external
+    //     view
+    //     override
+    //     returns (uint256, uint256)
+    //   {
+    //     return (super.balanceOf(user), super.totalSupply());
+    //   }
 
-//     return currentSupplyScaled.rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
-//   }
+    //   /**
+    //    * @dev calculates the total supply of the specific mToken
+    //    * since the balance of every single user increases over time, the total supply
+    //    * does that too.
+    //    * @return the current total supply
+    //    **/
+    //   function totalSupply() public view override returns (uint256) {
+    //     uint256 currentSupplyScaled = super.totalSupply();
 
-//   /**
-//    * @dev Returns the scaled total supply of the variable debt token. Represents sum(debt/index)
-//    * @return the scaled total supply
-//    **/
-//   function scaledTotalSupply() public view virtual override returns (uint256) {
-//     return super.totalSupply();
-//   }
+    //     if (currentSupplyScaled == 0) {
+    //       return 0;
+    //     }
 
-//   /**
-//    * @dev Returns the address of the Aave treasury, receiving the fees on this mToken
-//    **/
-//   function RESERVE_TREASURY_ADDRESS() public view returns (address) {
-//     return _treasury;
-//   }
+    //     return currentSupplyScaled.rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
+    //   }
 
-//   /**
-//    * @dev Returns the address of the underlying asset of this mToken (E.g. WETH for aWETH)
-//    **/
-//   function UNDERLYING_ASSET_ADDRESS() public override view returns (address) {
-//     return _underlyingAsset;
-//   }
+    //   /**
+    //    * @dev Returns the scaled total supply of the variable debt token. Represents sum(debt/index)
+    //    * @return the scaled total supply
+    //    **/
+    //   function scaledTotalSupply() public view virtual override returns (uint256) {
+    //     return super.totalSupply();
+    //   }
 
-//   /**
-//    * @dev Returns the address of the lending pool where this mToken is used
-//    **/
-//   function POOL() public view returns (MediciCore) {
-//     return _pool;
-//   }
+    //   /**
+    //    * @dev Returns the address of the Aave treasury, receiving the fees on this mToken
+    //    **/
+    //   function RESERVE_TREASURY_ADDRESS() public view returns (address) {
+    //     return _treasury;
+    //   }
 
-//   /**
-//    * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
-//    * assets in borrow(), withdraw() and flashLoan()
-//    * @param target The recipient of the mTokens
-//    * @param amount The amount getting transferred
-//    * @return The amount transferred
-//    **/
-//   function transferUnderlyingTo(address target, uint256 amount)
-//     external
-//     override
-//     onlyCore
-//     returns (uint256)
-//   {
-//     IERC20(_underlyingAsset).safeTransfer(target, amount);
-//     return amount;
-//   }
+    //   /**
+    //    * @dev Returns the address of the underlying asset of this mToken (E.g. WETH for aWETH)
+    //    **/
+    //   function UNDERLYING_ASSET_ADDRESS() public override view returns (address) {
+    //     return _underlyingAsset;
+    //   }
 
-//   /**
-//    * @dev Invoked to execute actions on the mToken side after a repayment.
-//    * @param user The user executing the repayment
-//    * @param amount The amount getting repaid
-//    **/
-//   function handleRepayment(address user, uint256 amount) external override onlyCore {}
+    //   /**
+    //    * @dev Returns the address of the lending pool where this mToken is used
+    //    **/
+    //   function POOL() public view returns (MediciCore) {
+    //     return _pool;
+    //   }
 
-//   /**
-//    * @dev Transfers the mTokens between two users. Validates the transfer
-//    * (ie checks for valid HF after the transfer) if required
-//    * @param from The source address
-//    * @param to The destination address
-//    * @param amount The amount getting transferred
-//    * @param validate `true` if the transfer needs to be validated
-//    **/
-//   function _transfer(
-//     address from,
-//     address to,
-//     uint256 amount,
-//     bool validate
-//   ) internal {
-//     address underlyingAsset = _underlyingAsset;
-//     MediciCore pool = _pool;
+    //   /**
+    //    * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
+    //    * assets in borrow(), withdraw() and flashLoan()
+    //    * @param target The recipient of the mTokens
+    //    * @param amount The amount getting transferred
+    //    * @return The amount transferred
+    //    **/
+    //   function transferUnderlyingTo(address target, uint256 amount)
+    //     external
+    //     override
+    //     onlyCore
+    //     returns (uint256)
+    //   {
+    //     IERC20(_underlyingAsset).safeTransfer(target, amount);
+    //     return amount;
+    //   }
 
-//     uint256 index = pool.getReserveNormalizedIncome(underlyingAsset);
+    //   /**
+    //    * @dev Invoked to execute actions on the mToken side after a repayment.
+    //    * @param user The user executing the repayment
+    //    * @param amount The amount getting repaid
+    //    **/
+    //   function handleRepayment(address user, uint256 amount) external override onlyCore {}
 
-//     uint256 fromBalanceBefore = super.balanceOf(from).rayMul(index);
-//     uint256 toBalanceBefore = super.balanceOf(to).rayMul(index);
+    //   /**
+    //    * @dev Transfers the mTokens between two users. Validates the transfer
+    //    * (ie checks for valid HF after the transfer) if required
+    //    * @param from The source address
+    //    * @param to The destination address
+    //    * @param amount The amount getting transferred
+    //    * @param validate `true` if the transfer needs to be validated
+    //    **/
+    //   function _transfer(
+    //     address from,
+    //     address to,
+    //     uint256 amount,
+    //     bool validate
+    //   ) internal {
+    //     address underlyingAsset = _underlyingAsset;
+    //     MediciCore pool = _pool;
 
-//     super._transfer(from, to, amount.rayDiv(index));
+    //     uint256 index = pool.getReserveNormalizedIncome(underlyingAsset);
 
-//     if (validate) {
-//       pool.finalizeTransfer(underlyingAsset, from, to, amount, fromBalanceBefore, toBalanceBefore);
-//     }
+    //     uint256 fromBalanceBefore = super.balanceOf(from).rayMul(index);
+    //     uint256 toBalanceBefore = super.balanceOf(to).rayMul(index);
 
-//     emit BalanceTransfer(from, to, amount, index);
-//   }
+    //     super._transfer(from, to, amount.rayDiv(index));
 
-//   /**
-//    * @dev Overrides the parent _transfer to force validated transfer() and transferFrom()
-//    * @param from The source address
-//    * @param to The destination address
-//    * @param amount The amount getting transferred
-//    **/
-//   function _transfer(
-//     address from,
-//     address to,
-//     uint256 amount
-//   ) internal override {
-//     _transfer(from, to, amount, true);
-//   }
+    //     if (validate) {
+    //       pool.finalizeTransfer(underlyingAsset, from, to, amount, fromBalanceBefore, toBalanceBefore);
+    //     }
+
+    //     emit BalanceTransfer(from, to, amount, index);
+    //   }
+
+    //   /**
+    //    * @dev Overrides the parent _transfer to force validated transfer() and transferFrom()
+    //    * @param from The source address
+    //    * @param to The destination address
+    //    * @param amount The amount getting transferred
+    //    **/
+    //   function _transfer(
+    //     address from,
+    //     address to,
+    //     uint256 amount
+    //   ) internal override {
+    //     _transfer(from, to, amount, true);
+    //   }
 
     function _setName(string memory newName) internal {
-    _name = newName;
-  }
+        _name = newName;
+    }
 
-  function _setSymbol(string memory newSymbol) internal {
-    _symbol = newSymbol;
-  }
+    function _setSymbol(string memory newSymbol) internal {
+        _symbol = newSymbol;
+    }
 
-  function _setDecimals(uint8 newDecimals) internal {
-    _decimals = newDecimals;
-  }
+    function _setDecimals(uint8 newDecimals) internal {
+        _decimals = newDecimals;
+    }
 }

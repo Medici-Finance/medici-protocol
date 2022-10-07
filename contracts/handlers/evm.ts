@@ -39,7 +39,8 @@ const config = JSON.parse(fs.readFileSync('./xdapp.config.json').toString());
  */
 export async function deploy(chain: string, core: boolean) {
   const network = config.testnet[chain];
-  const scriptFn = core ? 'deployCore' : 'deployPeriphery';
+
+  const scriptFn = core ? 'deployCore' : chain === 'goerli' ? 'deployPeripheryGeorli' : 'deployPeripheryFuji';
 
   const script = `forge script test/Medici.s.sol:Medici --sig "${scriptFn}()" --rpc-url ${network.rpc} --broadcast -vvv`;
 
@@ -123,7 +124,9 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
       signer
     );
 
-    const tx = await periphery.registerCore(targetNetwork.wormholeChainId, emitterBuffer);
+    const tx = await periphery.registerCore(targetNetwork.wormholeChainId, emitterBuffer, {
+      gasLimit: 1000000,
+    });
   }
   console.log(`Registered ${target} application on ${src}`);
 }

@@ -6,7 +6,7 @@ import "../helpers/BytesLib.sol";
 import {IWormhole} from "../wormhole/IWormhole.sol";
 
 import {MediciGov} from "./MediciGov.sol";
-import {MediciStructs} from "../MediciStructs.sol";
+import "../MediciStructs.sol";
 
 import {Personhood} from "./Personhood.sol";
 
@@ -15,49 +15,106 @@ contract MediciCore is MediciGov {
 
     Personhood ph;
 
-    constructor(address _ph) {
-        ph = Personhood(_ph);
+    constructor(address wormholeContractAddress_, uint8 consistencyLevel_, address ph_) {
+        _state.provider.wormhole = payable(wormholeContractAddress_);
+        _state.provider.consistencyLevel = consistencyLevel_;
+
+        ph = Personhood(ph_);
         _state.owner = msg.sender;
     }
 
-    function initLoan(bytes memory loanReqVaa) external {
-        /// @dev confirms that the message is from the Conductor and valid
-        (IWormhole.VM memory vm, bool valid, string memory reason) = wormhole().parseAndVerifyVM(loanReqVaa);
+    function initLoan(bytes calldata encodedVm) external {
+        /// @dev confirms that the message is from Periphery and valid
+        // parse and verify the wormhole BorrowMessage
+        (IWormhole.VM memory parsed, bool valid, string memory reason) = wormhole().parseAndVerifyVM(encodedVm);
+        require(valid, reason);
 
         require(valid, reason);
-        require(verifyEmitterVM(vm), "Invalid emitter");
+        require(verifyEmitterVM(parsed), "Invalid emitter");
 
-        MediciStructs.Loan memory loanReq = MediciStructs.parseLoan(vm.payload);
-        // require(!loanAlreadyExists(loanReq.loanId));
+        require(!getMessageHashes(parsed.hash), "Message already processed");
+        processMessageHash(parsed.hash);
 
-        loanReq.worldID = ph.getPerson(loanReq.borrower);
+        BorrowRequestMessage memory params = decodeBorrowRequestMessage(parsed.payload);
+        bytes memory wBorrower = encodeWAddress(parsed.emitterChainId, params.header.sender);
+        uint256 worldID = ph.getPerson(wBorrower);
 
-        // require(MediciStructs.verifySignature(vm.payload), "Unauthorized");
-        setLoan(loanReq);
+        Loan memory loan = Loan({
+            borrower: wBorrower,
+            worldID: worldID,
+            principal: params.borrowAmount,
+            pending: 0,
+            tenor: params.tenor,
+            // TODO: fix this
+            repaymentTime: block.timestamp + params.tenor,
+            collateral: params.header.collateralAddress,
+            collateralAmt: 0
+        });
+        setNextLoan(loan);
 
-        emit LoanCreated(getNextLoanID() - 1);
+        RiskProfile memory profile = getRiskProfile(worldID);
+        addLoanToProfile(worldID, getLoanID() - 1);
+
+        emit LoanCreated(getLoanID() - 1);
     }
 
-    function receiveLoan() external {
-        // wrap transfer USDC token to borrower
-        // update riskProfile graph
-        // update repayment time
+    function updateLoanReceipt(bytes memory encodedVm) external returns (uint256 wormholeSeq){
+        // parse and verify the wormhole BorrowMessage
+        (
+            IWormhole.VM memory parsed,
+            bool valid,
+            string memory reason
+        ) = wormhole().parseAndVerifyVM(encodedVm);
+        require(valid, reason);
 
+        // verify emitter
+        require(verifyEmitterVM(parsed), "invalid emitter");
+
+        // TODO: check header for token
+        // TODO: check target liquidity
+
+        BorrowApproveMessage memory params = decodeBorrowApproveMessage(parsed.payload);
+        uint256 loanId = params.loanId;
+        address lender = params.header.sender;
+        uint256 amount = params.approveAmount;
+
+        updateRiskDAG(loanId, lender, amount);
+        updateLoan(loanId, amount);
+
+        MessageHeader memory header = MessageHeader({
+            payloadID: uint8(3),
+            sender: msg.sender,
+            // TODO: look at this
+            collateralAddress: address(0),
+            borrowAddress: address(0)
+        });
+
+        address borrower = getBorrower(loanId);
+
+        wormholeSeq = sendWormholeMessage(
+            encodeBorrowReceiptMessage(
+                BorrowReceiptMessage({
+                    header: header,
+                    loanId: loanId,
+                    recipient: borrower,
+                    amount: amount
+                })
+            )
+        );
     }
 
-    // @dev verifyConductorVM serves to validate VMs by checking against the known Conductor contract
-    // TODO - for each chain
+    // @dev verifyConductorVM serves to validate VMs by checking against the known Periphery contract
     function verifyEmitterVM(IWormhole.VM memory vm) internal view returns (bool) {
-        // TODO: error
-        if (getPeripheryContract(vm.emitterChainId) == vm.emitterAddress) {
-            return true;
-        }
-
-        return false;
+        return getPeripheryContract(vm.emitterChainId) == vm.emitterAddress;
     }
 
-    function loanAlreadyExists(uint256 loanId) public view returns (bool) {
-        return loanId < getNextLoanID();
+    function sendWormholeMessage(bytes memory payload) internal returns (uint64 sequence) {
+        sequence = IWormhole(_state.provider.wormhole).publishMessage(
+            nonce(), // nonce
+            payload,
+            consistencyLevel()
+        );
+        incrementNonce();
     }
 
     // necessary for receiving native assets

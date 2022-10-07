@@ -39,7 +39,7 @@
     "mumbai": {
       "type": "evm",
       "wormholeChainId": 5,
-      "rpc": "https://polygon-mumbai.g.alchemy.com/v2/10aCaemnRWMcG6qh_lsCXCUByxnZyoEt",
+      "rpc": "https://rpc-mumbai.maticvigil.com/v1/7e55d7659e07d08db317510964934884de82dc11",
       "bridgeAddress": "0x0CBE91CF822c73C2315FB05100C2F714765d5c20",
       "deployedAddress": "",
       "emittedVAAs": []
@@ -52,11 +52,11 @@
       "deployedAddress": "",
       "emittedVAAs": []
     },
-    "bsc": {
+    "fuji": {
       "type": "evm",
-      "wormholeChainId": 4,
-      "rpc": "http://localhost:8547",
-      "bridgeAddress": "0x68605AD7b15c732a30b1BbC62BE8F2A509D74b4D",
+      "wormholeChainId": 6,
+      "rpc": "https://rpc.ankr.com/avalanche_fuji",
+      "bridgeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C",
       "deployedAddress": "",
       "emittedVAAs": []
     },
@@ -64,7 +64,6 @@
       "type": "solana",
       "wormholeChainId": 1,
       "rpc": "http://localhost:8899",
-      "privateKey": "J2D4pwDred8P9ioyPEZVLPht885AeYpifsFGUyuzVmiKQosAvmZP4EegaKFrSprBC5vVP1xTvu61vYDWsxBNsYx",
       "bridgeAddress": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
     }
   },
@@ -105,7 +104,10 @@
     }
   },
   "wormhole": {
-    "restAddress": "http://localhost:7071"
+    "restAddress": "https://wormhole-v2-testnet-api.certus.one"
+  },
+  "worldcoin": {
+    "IWorld": "0xABB70f7F39035586Da57B3c8136035f87AC0d2Aa"
   },
   "key": "value"
 }

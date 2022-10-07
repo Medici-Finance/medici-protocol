@@ -26,10 +26,7 @@ interface IWormhole is Structs {
         bytes32 hash,
         Structs.Signature[] memory signatures,
         Structs.GuardianSet memory guardianSet
-    )
-        external
-        pure
-        returns (bool valid, string memory reason);
+    ) external pure returns (bool valid, string memory reason);
 
     function parseVM(bytes memory encodedVM) external pure returns (Structs.VM memory vm);
 

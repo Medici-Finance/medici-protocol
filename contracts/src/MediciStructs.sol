@@ -3,78 +3,184 @@ pragma solidity 0.8.15;
 import "./helpers/BytesLib.sol";
 import "forge-std/console.sol";
 
-library MediciStructs {
+struct Loan {
+    bytes borrower;
+    uint256 worldID;
+    uint256 principal;
+    uint256 pending;
+    uint256 tenor;
+    uint256 repaymentTime;
+    address collateral;
+    uint256 collateralAmt;
+}
+
+struct MessageHeader {
+    uint8 payloadID;
+    // address of the sender
+    address sender;
+    // collateral info
+    address collateralAddress; // for verification
+    // borrow info
+    address borrowAddress; // for verification
+}
+
+struct BorrowRequestMessage {
+    // payloadID = 1
+    MessageHeader header;
+    uint256 borrowAmount;
+    uint256 totalNormalizedBorrowAmount;
+    uint256 tenor;
+}
+
+struct BorrowApproveMessage {
+    // payloadID = 2
+    MessageHeader header;
+    uint256 loanId;
+    uint256 approveAmount;
+    uint256 totalNormalizedApproveAmount;
+}
+
+struct BorrowReceiptMessage {
+    // payloadID = 3
+    MessageHeader header;
+    uint256 loanID;
+    address recipient;
+    uint256 amount;
+}
+
+struct CreditLine {
+    bytes lender;
+    uint256 amount;
+}
+
+struct RiskProfile {
+    CreditLine[] lenders;
+    uint256[] loans;
+    uint256 creditLine;
+}
+
+contract MediciStructs {
     using BytesLib for bytes;
 
-    struct Loan {
-        bytes borrower;
-        uint256 worldID;
-        uint256 principal;
-        uint256 tenor;
-        uint256 repaymentTime;
-        address collateral;
-        uint256 collateralAmt;
+    function encodeMessageHeader(MessageHeader memory header) internal pure returns (bytes memory) {
+        return abi.encodePacked(header.sender, header.collateralAddress, header.borrowAddress);
     }
 
-    struct RiskProfile {
-        uint256[] trustors;
-        Loan[] loans;
-        uint256 creditLine;
+    function decodeMessageHeader(bytes memory serialized) internal pure returns (MessageHeader memory header) {
+        uint256 index = 0;
+
+        // parse the header
+        header.payloadID = serialized.toUint8(index += 1);
+        header.sender = serialized.toAddress(index += 20);
+        header.collateralAddress = serialized.toAddress(index += 20);
+        header.borrowAddress = serialized.toAddress(index += 20);
     }
 
-    function encodeLoan(Loan memory _loan) public pure returns (bytes memory) {
+    function encodeBorrowRequestMessage(BorrowRequestMessage memory message) internal pure returns (bytes memory) {
         return abi.encodePacked(
-            _loan.borrower,
-            _loan.worldID,
-            _loan.principal,
-            _loan.tenor,
-            _loan.repaymentTime,
-            _loan.collateral,
-            _loan.collateralAmt
+            uint8(1), // payloadID
+            encodeMessageHeader(message.header),
+            message.borrowAmount,
+            message.totalNormalizedBorrowAmount,
+            message.tenor
         );
     }
 
-    function parseLoan(bytes memory encoded) public pure returns (Loan memory loan) {
+    function decodeBorrowRequestMessage(bytes memory serialized)
+        internal
+        pure
+        returns (BorrowRequestMessage memory params)
+    {
         uint256 index = 0;
 
-        loan.borrower = encoded.slice(index, 34);
-        index += 34;
+        // parse the message header
+        params.header = decodeMessageHeader(serialized.slice(index, index += 61));
+        params.borrowAmount = serialized.toUint256(index += 32);
+        params.totalNormalizedBorrowAmount = serialized.toUint256(index += 32);
+        params.tenor = serialized.toUint256(index += 32);
 
-        loan.worldID = encoded.toUint256(index);
-        index += 32;
-
-        loan.principal = encoded.toUint256(index);
-        index += 32;
-
-        loan.tenor = encoded.toUint256(index);
-        index += 32;
-
-        loan.repaymentTime = encoded.toUint256(index);
-        index += 32;
-
-        loan.collateral = encoded.toAddress(index);
-        index += 20;
-
-        loan.collateralAmt = encoded.toUint256(index);
-        index += 32;
+        require(params.header.payloadID == 1, "invalid message");
+        require(index == serialized.length, "index != serialized.length");
     }
 
-    function encodeWAddress(uint16 _chainID, address _address) public returns (bytes memory) {
+    function encodeBorrowApproveMessage(BorrowApproveMessage memory message) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            uint8(2), // payloadID
+            encodeMessageHeader(message.header),
+            message.loanId,
+            message.approveAmount,
+            message.totalNormalizedApproveAmount
+        );
+    }
+
+    function decodeBorrowApproveMessage(bytes memory serialized)
+        internal
+        pure
+        returns (BorrowApproveMessage memory params)
+    {
+        uint256 index = 0;
+
+        // parse the message header
+        params.header = decodeMessageHeader(serialized.slice(index, index += 61));
+        params.loanId = serialized.toUint256(index += 32);
+        params.approveAmount = serialized.toUint256(index += 32);
+        params.totalNormalizedApproveAmount = serialized.toUint256(index += 32);
+
+        require(params.header.payloadID == 2, "invalid message");
+        require(index == serialized.length, "index != serialized.length");
+    }
+
+    function encodeBorrowReceiptMessage(BorrowReceiptMessage memory message) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            uint8(3), // payloadID
+            encodeMessageHeader(message.header),
+            message.loanID,
+            message.recipient,
+            message.amount
+        );
+    }
+
+    function decodeBorrowReceiptMessage(bytes memory serialized)
+        internal
+        pure
+        returns (BorrowReceiptMessage memory params)
+    {
+        uint256 index = 0;
+
+        // parse the message header
+        params.header = decodeMessageHeader(serialized.slice(index, index += 61));
+        params.loanID = serialized.toUint256(index += 32);
+        params.recipient = serialized.toAddress(index += 20);
+        params.amount = serialized.toUint256(index += 32);
+
+        require(params.header.payloadID == 3, "invalid message");
+        require(index == serialized.length, "index != serialized.length");
+    }
+
+    function encodeWAddress(uint16 _chainId, address _address) public returns (bytes memory) {
         bytes memory addy = new bytes(32);
         assembly {
             mstore(add(addy, 32), _address)
         }
-        return bytes.concat(toBytes(100), addy);
+        return bytes.concat(toBytes(_chainId), addy);
+    }
+
+    function decodeWAddress(bytes memory _address) public returns (uint16, address) {
+        // uint16 chainID = uint16(_address[0]);
+        // address addy;
+        // assembly {
+        //     addy := mload(add(_address, 32))
+        // }
+        return (0, address(0));
     }
 
     function toBytes(uint16 x) public returns (bytes memory c) {
         bytes2 b = bytes2(x);
         c = new bytes(2);
-        for (uint i=0; i < 2; i++) {
+        for (uint256 i = 0; i < 2; i++) {
             c[i] = b[i];
         }
     }
-
 
     /**
      * @dev verify and check if the emitter sender is worldId holder

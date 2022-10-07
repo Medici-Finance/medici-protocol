@@ -90,11 +90,7 @@ library MerkleProof {
         bool[] calldata proofFlags,
         bytes32 root,
         bytes32[] memory leaves
-    )
-        internal
-        pure
-        returns (bool)
-    {
+    ) internal pure returns (bool) {
         return processMultiProofCalldata(proof, proofFlags, leaves) == root;
     }
 
