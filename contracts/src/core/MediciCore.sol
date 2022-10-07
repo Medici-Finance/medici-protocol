@@ -89,12 +89,13 @@ contract MediciCore is MediciGov {
             borrowAddress: address(0)
         });
 
-        address borrower = getBorrower(loanId);
+        (uint16 chainId, address borrower) = getBorrower(loanId);
 
         wormholeSeq = sendWormholeMessage(
             encodeBorrowReceiptMessage(
                 BorrowReceiptMessage({
                     header: header,
+                    chainId: chainId,
                     loanId: loanId,
                     recipient: borrower,
                     amount: amount

@@ -6,7 +6,8 @@ import "forge-std/console.sol";
 // import "forge-std/stdJson.sol";
 import "./LocalConfig.sol";
 import "../src/core/MediciCore.sol";
-import "./helpers/ERC20Mintable.SOL";
+import "./helpers/ERC20Mintable.sol";
+import "../src/helpers/MToken.sol";
 import "../src/periphery/Periphery.sol";
 
 contract Medici is Script {
@@ -42,16 +43,24 @@ contract Medici is Script {
         vm.stopBroadcast();
     }
 
+
     function deployPeripheryGeorli() public {
         vm.startBroadcast(deployerPrivateKey);
 
         ERC20Mintable gUSDC = new ERC20Mintable("gUSDC", "gUSDC", 6);
-
         periphery = new Periphery(
             WORMHOLE_BC_GOERLI,
             200,
             address(gUSDC)
         );
+        MToken mDebt = new MToken(
+            periphery,
+            address(gUSDC),
+            6,
+            "mDebt",
+            "MICI"
+        );
+        periphery.setMToken(address(mDebt));
         vm.stopBroadcast();
     }
 
@@ -65,6 +74,14 @@ contract Medici is Script {
             200,
             address(fUSDC)
         );
+        MToken mDebt = new MToken(
+            periphery,
+            address(fUSDC),
+            6,
+            "mDebt",
+            "MICI"
+        );
+        periphery.setMToken(address(mDebt));
         vm.stopBroadcast();
     }
 }

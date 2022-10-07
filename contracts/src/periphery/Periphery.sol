@@ -20,8 +20,7 @@ contract Periphery is PeripheryGov, MediciStructs {
     constructor(
         address wormholeContractAddress_,
         uint8 consistencyLevel_,
-        address collateralAssetAddress_,
-        address mTokenAddress_
+        address collateralAssetAddress_
     ) {
         setMaxTenor(90 days);
 
@@ -29,7 +28,7 @@ contract Periphery is PeripheryGov, MediciStructs {
         _state.provider.consistencyLevel = consistencyLevel_;
 
         _state.collateralAssetAddress = collateralAssetAddress_;
-        _state.mTokenAddress = mTokenAddress_;
+
 
         _state.owner = payable(msg.sender);
     }
@@ -61,7 +60,8 @@ contract Periphery is PeripheryGov, MediciStructs {
     function initLend(uint256 loanId, uint256 amount) external returns (uint256 wormholeSeq) {
         SafeERC20.safeTransferFrom(collateralToken(), msg.sender, address(this), amount);
 
-        mToken().mint(msg.sender, amount);
+
+        mToken().mint(msg.sender, amount, 1);
 
         MessageHeader memory header = MessageHeader({
             payloadID: uint8(2),
@@ -103,7 +103,7 @@ contract Periphery is PeripheryGov, MediciStructs {
         // parse the payload
         BorrowReceiptMessage memory receipt = decodeBorrowReceiptMessage(parsed.payload);
 
-        SafeERC20.safeTransferFrom(collateralToken(), address(this), receipt.recipient, parsed.sender, parsed.amount);
+        SafeERC20.safeTransferFrom(collateralToken(), address(this), receipt.recipient, receipt.amount);
     }
 
     function sendWormholeMessage(bytes memory payload) internal returns (uint64 sequence) {
@@ -118,6 +118,6 @@ contract Periphery is PeripheryGov, MediciStructs {
     // @dev verifyConductorVM serves to validate VMs by checking against the known Core contract
     function verifyEmitterVM(IWormhole.VM memory vm) internal view returns (bool) {
         return vm.emitterChainId == _state.provider.coreChainID &&
-            vm.emitterAddress == _state.provider.coreContracte;
+            vm.emitterAddress == _state.provider.coreContract;
     }
 }

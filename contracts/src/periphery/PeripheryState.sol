@@ -70,6 +70,10 @@ contract PeripheryState {
         _state.provider.coreContract = coreContract;
     }
 
+    function setMToken(address mTokenAddress) public {
+        _state.mTokenAddress = mTokenAddress;
+    }
+
     function getMessageHashes(bytes32 messageHash) public view returns (bool) {
         return _state.messageHashes[messageHash];
     }
@@ -78,7 +82,7 @@ contract PeripheryState {
         return IERC20(_state.collateralAssetAddress);
     }
 
-    function mToken() internal view returns (IERC20) {
+    function mToken() internal view returns (MToken) {
         return MToken(_state.mTokenAddress);
     }
 

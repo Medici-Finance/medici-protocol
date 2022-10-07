@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 import {IMToken} from "../interfaces/IMToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {WadRayMath} from "./WadRayMath.sol";
-import {MediciCore} from "../core/MediciCore.sol";
+import {Periphery} from "../periphery/Periphery.sol";
 
 /**
  * @title Medici ERC20 MToken
@@ -20,11 +20,11 @@ contract MToken is IMToken, ERC20 {
     string private _symbol;
     uint8 private _decimals;
 
-    MediciCore internal _pool;
+    Periphery internal _pool;
     address internal _underlyingAsset;
 
     modifier onlyCore() {
-        require(msg.sender == address(_pool), "ERROR: only core permitted");
+        require(msg.sender == address(_pool), "ERROR: only periphery permitted");
         _;
     }
 
@@ -37,8 +37,7 @@ contract MToken is IMToken, ERC20 {
      * @param mTokenSymbol The symbol of the mToken
      */
     constructor(
-        MediciCore pool,
-        address treasury,
+        Periphery pool,
         address underlyingAsset,
         uint8 mTokenDecimals,
         string memory mTokenName,
@@ -84,7 +83,7 @@ contract MToken is IMToken, ERC20 {
 
     /**
      * @dev Mints `amount` mTokens to `user`
-     * - Only callable by the MediciCore, as extra state updates there need to be managed
+     * - Only callable by the Periphery, as extra state updates there need to be managed
      * @param user The address receiving the minted tokens
      * @param amount The amount of tokens getting minted
      * @param index The new liquidity index of the reserve

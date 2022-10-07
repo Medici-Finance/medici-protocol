@@ -43,7 +43,8 @@ struct BorrowApproveMessage {
 struct BorrowReceiptMessage {
     // payloadID = 3
     MessageHeader header;
-    uint256 loanID;
+    uint16 chainId;
+    uint256 loanId;
     address recipient;
     uint256 amount;
 }
@@ -134,7 +135,8 @@ contract MediciStructs {
         return abi.encodePacked(
             uint8(3), // payloadID
             encodeMessageHeader(message.header),
-            message.loanID,
+            message.chainId,
+            message.loanId,
             message.recipient,
             message.amount
         );
@@ -149,7 +151,8 @@ contract MediciStructs {
 
         // parse the message header
         params.header = decodeMessageHeader(serialized.slice(index, index += 61));
-        params.loanID = serialized.toUint256(index += 32);
+        params.chainId = serialized.toUint16(index += 16);
+        params.loanId = serialized.toUint256(index += 32);
         params.recipient = serialized.toAddress(index += 20);
         params.amount = serialized.toUint256(index += 32);
 

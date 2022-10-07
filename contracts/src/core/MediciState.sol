@@ -56,7 +56,7 @@ contract MediciState is MediciStructs{
         return _state.loanID;
     }
 
-    function getBorrower(uint256 loanId) public view returns (uint16 chainId, address borrower) {
+    function getBorrower(uint256 loanId) public returns (uint16 chainId, address borrower) {
         bytes memory wb = _state.loans[loanId].borrower;
         (uint16 chainId, address borrower ) = decodeWAddress(wb);
     }
