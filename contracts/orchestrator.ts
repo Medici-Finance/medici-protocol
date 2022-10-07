@@ -63,6 +63,37 @@ medici
     await srcHandler.registerApp(src, target, node === 'core');
   });
 
+// $ request-loan <amount> <apr> <tenor>
+medici
+  .command('request-loan')
+  .description('Requests a loan on the periphery source chain')
+  .argument('<chain>', 'the network you want to request a loan on')
+  .argument('<amount>', 'USDC amount to borrow, no decimals')
+  .argument('<apr>', 'apr to borrow at, like 22.5%')
+  .argument('<tenor>', 'tenor to borrow for in days, like 30')
+  .action(async (chain, amount, apr, tenor) => {
+    if (!config.testnet[chain]) {
+      console.error(`ERROR: ${chain} not found in xdapp.config.json`);
+      return;
+    }
+    try {
+      switch (config.testnet[chain].type) {
+        case 'evm':
+          let amountUint = BigInt(amount) * BigInt(10 ** 6);
+          let aprUint = BigInt(parseFloat(apr) * 10 ** 16);
+          let tenorUint = BigInt(tenor * 86400);
+          console.log(`Requesting loan on ${chain} for ${amountUint} at ${aprUint} for ${tenorUint} seconds`);
+          await evm.requestLoan(chain, amountUint, aprUint, tenorUint);
+          break;
+        case 'solana':
+          break;
+      }
+      console.log(`Emitted VAA on ${chain} network. Submit it using \`submit-vaa\` command on a target network.`);
+    } catch (e) {
+      console.error(`ERROR: ${e}`);
+    }
+  });
+
 medici;
 
 medici.parse(process.argv);

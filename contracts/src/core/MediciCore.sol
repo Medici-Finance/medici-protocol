@@ -45,6 +45,7 @@ contract MediciCore is MediciGov {
             principal: params.borrowAmount,
             pending: 0,
             tenor: params.tenor,
+            apr: params.apr,
             // TODO: fix this
             repaymentTime: block.timestamp + params.tenor,
             collateral: params.header.collateralAddress,

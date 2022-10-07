@@ -9,6 +9,7 @@ struct Loan {
     uint256 principal;
     uint256 pending;
     uint256 tenor;
+    uint256 apr; // 100% - 18 decimals
     uint256 repaymentTime;
     address collateral;
     uint256 collateralAmt;
@@ -30,6 +31,7 @@ struct BorrowRequestMessage {
     uint256 borrowAmount;
     uint256 totalNormalizedBorrowAmount;
     uint256 tenor;
+    uint256 apr;
 }
 
 struct BorrowApproveMessage {
@@ -83,7 +85,8 @@ contract MediciStructs {
             encodeMessageHeader(message.header),
             message.borrowAmount,
             message.totalNormalizedBorrowAmount,
-            message.tenor
+            message.tenor,
+            message.apr
         );
     }
 
@@ -99,6 +102,7 @@ contract MediciStructs {
         params.borrowAmount = serialized.toUint256(index += 32);
         params.totalNormalizedBorrowAmount = serialized.toUint256(index += 32);
         params.tenor = serialized.toUint256(index += 32);
+        params.apr = serialized.toUint256(index += 32);
 
         require(params.header.payloadID == 1, "invalid message");
         require(index == serialized.length, "index != serialized.length");

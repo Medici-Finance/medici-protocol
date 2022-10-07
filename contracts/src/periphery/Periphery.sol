@@ -33,7 +33,7 @@ contract Periphery is PeripheryGov, MediciStructs {
         _state.owner = payable(msg.sender);
     }
 
-    function request(uint256 loanAmt, uint256 tenor) external returns (uint256 wormholeSeq) {
+    function request(uint256 loanAmt, uint256 apr, uint256 tenor) external returns (uint256 wormholeSeq) {
         require(tenor <= maxTenor(), "Loan tenor too long");
         require(loanAmt > 0, "Loan amount must be greater than 0");
 
@@ -50,6 +50,7 @@ contract Periphery is PeripheryGov, MediciStructs {
                     header: header,
                     borrowAmount: loanAmt,
                     totalNormalizedBorrowAmount: loanAmt,
+                    apr: apr,
                     tenor: tenor
                 })
             )

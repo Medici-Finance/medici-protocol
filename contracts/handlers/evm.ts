@@ -133,4 +133,54 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
 
 export async function authenticate() {}
 
-export async function loanRequest() {}
+export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
+  const srcNetwork = config.testnet[chain];
+  let srcDeploymentInfo;
+  try {
+    srcDeploymentInfo = JSON.parse(fs.readFileSync(`./deployinfo/${chain}.deploy.json`).toString());
+  } catch (e) {
+    throw new Error(`${chain} is not deployed yet`);
+  }
+
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
+    new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
+  );
+
+  const periphery = new ethers.Contract(
+    srcDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/Periphery.sol/Periphery.json').toString()).abi,
+    signer
+  );
+
+  console.log('Requesting loan');
+  const tx = await periphery.request(loanAmt, apr, tenor, {
+    gasLimit: 1000000,
+  });
+  await tx.wait();
+  console.log('Loan working');
+  const seq = parseSequenceFromLogEth(tx, srcNetwork['bridgeAddress']);
+  const emitterAddr = getEmitterAddressEth(srcDeploymentInfo['address']);
+
+  await new Promise((r) => setTimeout(r, 5000)); // wait for the guardian to pick up the loan request
+
+  console.log(
+    'Searching for: ',
+    `${config.wormhole.restAddress}/v1/signed_vaa/${srcNetwork.wormholeChainId}/${emitterAddr}/${seq}`
+  );
+
+  const vaaBytes = await (
+    await fetch(`${config.wormhole.restAddress}/v1/signed_vaa/${srcNetwork.wormholeChainId}/${emitterAddr}/${seq}`)
+  ).json();
+
+  if (!vaaBytes['vaaBytes']) {
+    throw new Error('VAA not found!');
+  }
+
+  if (!srcDeploymentInfo['vaas']) {
+    srcDeploymentInfo['vaas'] = [vaaBytes['vaaBytes']];
+  } else {
+    srcDeploymentInfo['vaas'].push(vaaBytes['vaaBytes']);
+  }
+  fs.writeFileSync(`./deployinfo/${chain}.deploy.json`, JSON.stringify(srcDeploymentInfo, null, 4));
+  return vaaBytes['vaaBytes'];
+}
