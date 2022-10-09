@@ -52,12 +52,15 @@ export async function deploy(chain: string, core: boolean) {
 
   let deploymentAddress;
   if (stdout) {
-    let tx = JSON.parse(fs.readFileSync('./broadcast/Medici.s.sol/5/deployCore-latest.json').toString()).transactions;
+    let tx = JSON.parse(
+      fs.readFileSync(`./broadcast/Medici.s.sol/${network.chainId}/${scriptFn}-latest.json`).toString()
+    ).transactions;
     for (const t of tx) {
-      if (t.contractName === 'MediciCore') {
+      if (t.contractName === 'MediciCore' || t.contractName === 'Periphery') {
         deploymentAddress = t.contractAddress;
       }
     }
+    console.log('contracts at ', deploymentAddress);
     const emittedVAAs = []; //Resets the emittedVAAs
 
     fs.writeFileSync(
@@ -71,6 +74,22 @@ export async function deploy(chain: string, core: boolean) {
         4
       )
     );
+  }
+}
+
+export async function verifyContracts(chain: string) {
+  const network = config.testnet[chain];
+
+  const script = `forge verify test/Medici.s.sol:Medici --sig "verifyContracts()" --rpc-url ${network.rpc} --broadcast -vvv`;
+
+  const { stdout, stderr } = await exec(script);
+
+  if (stderr) {
+    throw new Error(stderr);
+  }
+
+  if (stdout) {
+    console.log('contracts verified');
   }
 }
 

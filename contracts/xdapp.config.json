@@ -38,7 +38,8 @@
   "testnet": {
     "mumbai": {
       "type": "evm",
-      "wormholeChainId": 5,
+      "wormholeChainId": 80001,
+      "chainId": 5,
       "rpc": "https://rpc-mumbai.maticvigil.com/v1/7e55d7659e07d08db317510964934884de82dc11",
       "bridgeAddress": "0x0CBE91CF822c73C2315FB05100C2F714765d5c20",
       "deployedAddress": "",
@@ -47,6 +48,7 @@
     "goerli": {
       "type": "evm",
       "wormholeChainId": 2,
+      "chainId": 5,
       "rpc": "https://eth-goerli.g.alchemy.com/v2/j8h5qnxHOrrLRtMrfYlsRNsGMUu54_1h",
       "bridgeAddress": "0x706abc4E45D419950511e474C7B9Ed348A4a716c",
       "deployedAddress": "",
@@ -55,6 +57,7 @@
     "fuji": {
       "type": "evm",
       "wormholeChainId": 6,
+      "chainId": 43113,
       "rpc": "https://rpc.ankr.com/avalanche_fuji",
       "bridgeAddress": "0x7bbcE28e64B3F8b84d876Ab298393c38ad7aac4C",
       "deployedAddress": "",
