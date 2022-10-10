@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: Apache 2
-
 pragma solidity 0.8.15;
 
 import "../helpers/BytesLib.sol";

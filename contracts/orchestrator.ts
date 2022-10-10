@@ -35,6 +35,30 @@ medici
   });
 
 medici
+  .command('verify')
+  .description("Verifies on the chain's explorer")
+  .argument('<chain>', 'the network you want to verify')
+  .argument('<node>', 'core or periphery')
+  .action(async (chain: string, node: string) => {
+    if (!config.testnet[chain]) {
+      console.error(`ERROR: ${chain} not found in xdapp.config.json`);
+      return;
+    }
+
+    let srcHandler;
+    switch (config.testnet[chain].type) {
+      case 'evm':
+        srcHandler = evm;
+        break;
+      case 'solana':
+        break;
+    }
+
+    console.log(`Verifying ${node} contracts on ${chain} explorer -- `);
+    await srcHandler.verifyContracts(chain, node === 'core');
+  });
+
+medici
   .command('register-app')
   .description('Registers the target app and target token with the source on chain app')
   .argument('<src>', 'the network you want to register the app on')
@@ -94,6 +118,39 @@ medici
     }
   });
 
-medici;
+// $ submit-vaa <source> <target> <vaa#>
+medici
+  .command('submit-vaa')
+  .argument('<source>', 'The network you want to submit the VAA on')
+  .argument('<target>', 'The network you want to receive the VAA on')
+  .argument(
+    '<vaa#>',
+    "The index of the VAA in the list of emitted VAAs that you want to submit. Use 'latest' to submit the latest VAA"
+  )
+  .action(async (src, target, idx) => {
+    if (!config.testnet[src]) {
+      console.error(`ERROR: ${src} not found in xdapp.config.json`);
+      return;
+    }
+    if (!config.testnet[target]) {
+      console.error(`ERROR: ${target} not found in xdapp.config.json`);
+      return;
+    }
+
+    try {
+      switch (config.testnet[src].type) {
+        case 'evm':
+          await evm.submitVaa(src, target, idx);
+          break;
+        case 'solana':
+          // await solana.submitVaa(src, target, idx);
+          break;
+      }
+
+      console.log(`Submitted VAA #${idx} from ${src} to chain ${target}`);
+    } catch (e) {
+      console.error(`ERROR: ${e}`);
+    }
+  });
 
 medici.parse(process.argv);

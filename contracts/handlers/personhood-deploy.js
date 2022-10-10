@@ -59,6 +59,18 @@ async function main() {
   tx = await tx.wait();
 
   spinner.succeed(`Deployed your contract to ${tx.contractAddress}`);
+  console.log(tx);
+
+  fs.writeFileSync(
+    `./deployinfo/personhood.deploy.json`,
+    JSON.stringify(
+      {
+        address: tx.contractAddress,
+      },
+      null,
+      4
+    )
+  );
 }
 
 main(...process.argv.splice(2)).then(() => process.exit(0));

@@ -172,7 +172,7 @@ contract MediciStructs {
         return bytes.concat(toBytes(_chainId), addy);
     }
 
-    function decodeWAddress(bytes memory _address) public returns (uint16, address) {
+    function decodeWAddress(bytes memory _address) public pure returns (uint16, address) {
         // uint16 chainID = uint16(_address[0]);
         // address addy;
         // assembly {

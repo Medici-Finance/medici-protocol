@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: Apache 2
-
 pragma solidity 0.8.15;
 
 import "../MediciStructs.sol";
@@ -56,9 +54,14 @@ contract MediciState is MediciStructs{
         return _state.loanID;
     }
 
+    // TODO: get all open loans - with time left or amount repaid < principal
+    function getOpenLoans() public view returns (uint256[] memory) {
+        return _state.riskProfiles[0].loans;
+    }
+
     function getBorrower(uint256 loanId) public returns (uint16 chainId, address borrower) {
         bytes memory wb = _state.loans[loanId].borrower;
-        (uint16 chainId, address borrower ) = decodeWAddress(wb);
+        (chainId, borrower ) = decodeWAddress(wb);
     }
 
     function getPeripheryContract(uint16 chainId) public view returns (bytes32) {
@@ -83,7 +86,7 @@ contract MediciState is MediciStructs{
     }
 
     function addLoanToProfile(uint256 worldID, uint256 loanId) public {
-        _state.riskProfiles[worldID].loans.push();
+        _state.riskProfiles[worldID].loans.push(loanId);
     }
 
     function updateRiskDAG(
@@ -94,7 +97,7 @@ contract MediciState is MediciStructs{
         uint256 worldID = _state.loans[loanId_].worldID;
 
         // _state.riskProfiles[worldID].lenders.lender =
-        //     MediciStructs.encodeWAddress(lender_);
+            // MediciStructs.encodeWAddress(lender_);
         // _state.riskProfiles[worldID].lenders.amount = amount_;
     }
 
