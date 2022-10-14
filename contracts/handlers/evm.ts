@@ -20,19 +20,6 @@ dotenv.config();
 const exec = promisify(require('child_process').exec);
 const config = JSON.parse(fs.readFileSync('./xdapp.config.json').toString());
 
-// let ABI = {};
-// try {
-//   ABI = JSON.parse(fs.readFileSync('./chains/evm/out/MediciCore.sol/MediciCore.json').toString()).abi;
-// } catch (e) {
-//   // fail silenty
-//   // The only time this fails is when deploy hasn't been called, in which case, this isn't needed
-// }
-
-// `forge script test/Medici.s.sol:Medici --legacy --rpc-url ${} -g 1000 --json`,
-
-// `forge build && forge create test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} --broadcast -vvv`,
-// `forge build && forge create --legacy --rpc-url ${network.rpc} --private-key ${network.privateKey} test/LocalConfig.sol:LocalConfig src/core/MediciCore.sol:MediciCore && exit`
-
 function checkDeploy(chain: string) {
   let deployInfo;
   try {
@@ -132,6 +119,7 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
 
   console.log(targetDeploymentInfo['address']);
   const emitterBuffer = Buffer.from(targetEmitter, 'hex');
+  console.log('emitter buffer: ', emitterBuffer);
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
     new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
   );
@@ -210,14 +198,18 @@ export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, t
 }
 
 export async function submitVaa(src: string, target: string, idx: string) {
-  const srcNetwork = config.testnet[src];
+  const targetNetwork = config.testnet[target];
   let srcDeploymentInfo = checkDeploy(src);
+  console.log('Target - ', target);
   let targetDeploymentInfo = checkDeploy(target);
 
   const vaa = isNaN(parseInt(idx)) ? srcDeploymentInfo.vaas.pop() : srcDeploymentInfo.vaas[parseInt(idx)];
 
+  // testing
+  console.log('testing - ', Buffer.from(vaa, 'base64').toString('hex'));
+
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
-    new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
+    new ethers.providers.JsonRpcProvider(targetNetwork.rpc)
   );
   const core = new ethers.Contract(
     targetDeploymentInfo.address,
@@ -225,8 +217,27 @@ export async function submitVaa(src: string, target: string, idx: string) {
     signer
   );
   const tx = await core.initLoan(Buffer.from(vaa, 'base64'), {
-    gasLimit: 1000000,
+    gasLimit: 2100000,
   });
   console.log(tx);
   return tx;
 }
+
+export async function getOpenLoans(core: string) {
+  const coreNetwork = config.testnet[core];
+  let coreDeploymentInfo = checkDeploy(core);
+
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
+    new ethers.providers.JsonRpcProvider(coreNetwork.rpc)
+  );
+
+  const periphery = new ethers.Contract(
+    coreDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+    signer
+  );
+
+  return await periphery.getOpenLoans();
+}
+
+export async function initLend() {}

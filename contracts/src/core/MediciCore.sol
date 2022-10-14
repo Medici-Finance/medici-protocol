@@ -22,32 +22,31 @@ contract MediciCore is MediciGov {
     }
 
     function initLoan(bytes calldata encodedVm) external {
-        /// @dev confirms that the message is from Periphery and valid
-        // parse and verify the wormhole BorrowMessage
+        /// @dev confirms that the payload is from Periphery and valid
+        // parse and verify the wormhole BorrowRequestPayload
         (IWormhole.VM memory parsed, bool valid, string memory reason) = wormhole().parseAndVerifyVM(encodedVm);
         require(valid, reason);
 
         require(valid, reason);
         require(verifyEmitterVM(parsed), "Invalid emitter");
 
-        require(!getMessageHashes(parsed.hash), "Message already processed");
-        processMessageHash(parsed.hash);
+        require(!getPayloadHashes(parsed.hash), "Payload already processed");
+        processPayloadHash(parsed.hash);
 
-        BorrowRequestMessage memory params = decodeBorrowRequestMessage(parsed.payload);
+        BorrowRequestPayload memory params = decodeBorrowRequestPayload(parsed.payload);
         bytes memory wBorrower = encodeWAddress(parsed.emitterChainId, params.header.sender);
         uint256 worldID = ph.getPerson(wBorrower);
 
         Loan memory loan = Loan({
             borrower: wBorrower,
             worldID: worldID,
-            principal: params.borrowAmount,
+            principal: params.borrowNormalizedAmount,
             pending: 0,
             tenor: params.tenor,
             apr: params.apr,
             // TODO: fix this
             repaymentTime: block.timestamp + params.tenor,
-            collateral: params.header.collateralAddress,
-            collateralAmt: 0
+            collateralNormalizedAmt: 0
         });
         setNextLoan(loan);
 
@@ -58,7 +57,7 @@ contract MediciCore is MediciGov {
     }
 
     function updateLoanReceipt(bytes memory encodedVm) external returns (uint256 wormholeSeq){
-        // parse and verify the wormhole BorrowMessage
+        // parse and verify the wormhole BorrowPayload
         (
             IWormhole.VM memory parsed,
             bool valid,
@@ -72,7 +71,7 @@ contract MediciCore is MediciGov {
         // TODO: check header for token
         // TODO: check target liquidity
 
-        BorrowApproveMessage memory params = decodeBorrowApproveMessage(parsed.payload);
+        BorrowApprovePayload memory params = decodeBorrowApprovePayload(parsed.payload);
         uint256 loanId = params.loanId;
         address lender = params.header.sender;
         uint256 amount = params.approveAmount;
@@ -80,19 +79,16 @@ contract MediciCore is MediciGov {
         updateRiskDAG(loanId, lender, amount);
         updateLoan(loanId, amount);
 
-        MessageHeader memory header = MessageHeader({
+        PayloadHeader memory header = PayloadHeader({
             payloadID: uint8(3),
-            sender: msg.sender,
-            // TODO: look at this
-            collateralAddress: address(0),
-            borrowAddress: address(0)
+            sender: msg.sender
         });
 
         (uint16 chainId, address borrower) = getBorrower(loanId);
 
         wormholeSeq = sendWormholeMessage(
-            encodeBorrowReceiptMessage(
-                BorrowReceiptMessage({
+            encodeBorrowReceiptPayload(
+                BorrowReceiptPayload({
                     header: header,
                     chainId: chainId,
                     loanId: loanId,

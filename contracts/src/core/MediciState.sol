@@ -16,9 +16,15 @@ contract MediciStorage {
         uint32 nonce;
         address owner;
         mapping(uint16 => bytes32) peripheryContracts;
+
         mapping(uint256 => Loan) loans;
+        uint256[] open;
+        uint256[] fulfilled;
+        uint256[] overdue;
+
         mapping(uint256 => RiskProfile) riskProfiles;
-        mapping(bytes32 => bool) messageHashes;
+
+        mapping(bytes32 => bool) payloadHashes;
         uint256 loanID;
         uint256 maxTenor;
     }
@@ -54,9 +60,26 @@ contract MediciState is MediciStructs{
         return _state.loanID;
     }
 
-    // TODO: get all open loans - with time left or amount repaid < principal
-    function getOpenLoans() public view returns (uint256[] memory) {
-        return _state.riskProfiles[0].loans;
+    // get all open loans - with time left or amount repaid < principal
+    function getOpenLoans() public view returns (Loan[] memory) {
+        // TODO - cleaner implementation
+        uint256 openLoansLength = _state.open.length + _state.overdue.length + _state.fulfilled.length;
+        uint256 index;
+        Loan[] memory loans = new Loan[](openLoansLength);
+
+        for (uint256 i = 0;i < _state.open.length; i++) {
+            loans[index++] = _state.loans[_state.open[i]];
+        }
+
+        for (uint256 j = 0;j < _state.fulfilled.length; j++) {
+            loans[index++] = _state.loans[_state.overdue[j]];
+        }
+
+        for (uint256 k = 0;k < _state.fulfilled.length; k++) {
+            loans[index++] = _state.loans[_state.overdue[k]];
+        }
+
+        return loans;
     }
 
     function getBorrower(uint256 loanId) public returns (uint16 chainId, address borrower) {
@@ -68,8 +91,8 @@ contract MediciState is MediciStructs{
         return _state.peripheryContracts[chainId];
     }
 
-    function getMessageHashes(bytes32 messageHash) public view returns (bool) {
-        return _state.messageHashes[messageHash];
+    function getPayloadHashes(bytes32 payloadHash) public view returns (bool) {
+        return _state.payloadHashes[payloadHash];
     }
 
     function getRiskProfile(uint256 worldID) public view returns (RiskProfile memory) {
@@ -81,6 +104,7 @@ contract MediciState is MediciStructs{
     }
 
     function setNextLoan(Loan memory loan) public {
+        _state.open.push(getLoanID());
         _state.loans[getLoanID()] = loan;
         _state.loanID += 1;
     }
@@ -105,8 +129,8 @@ contract MediciState is MediciStructs{
         _state.loans[loanId_].pending += amount_;
     }
 
-    function processMessageHash(bytes32 hash) internal {
-        _state.messageHashes[hash] = true;
+    function processPayloadHash(bytes32 hash) internal {
+        _state.payloadHashes[hash] = true;
     }
 
 }

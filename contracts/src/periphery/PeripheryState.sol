@@ -23,7 +23,7 @@ contract PeripheryStorage {
         address collateralAssetAddress;
         address borrowingAssetAddress;
         address mTokenAddress;
-        mapping(bytes32 => bool) messageHashes;
+        mapping(bytes32 => bool) payloadHashes;
     }
 }
 
@@ -62,6 +62,7 @@ contract PeripheryState {
     }
 
     function setMaxTenor(uint256 _maxTenor) public {
+
         _state.maxTenor = _maxTenor;
     }
 
@@ -74,8 +75,8 @@ contract PeripheryState {
         _state.mTokenAddress = mTokenAddress;
     }
 
-    function getMessageHashes(bytes32 messageHash) public view returns (bool) {
-        return _state.messageHashes[messageHash];
+    function getPayloadHashes(bytes32 payloadHash) public view returns (bool) {
+        return _state.payloadHashes[payloadHash];
     }
 
     function collateralToken() internal view returns (IERC20) {
@@ -86,7 +87,7 @@ contract PeripheryState {
         return MToken(_state.mTokenAddress);
     }
 
-    function processMessageHash(bytes32 hash) internal {
-        _state.messageHashes[hash] = true;
+    function processPayloadHash(bytes32 hash) internal {
+        _state.payloadHashes[hash] = true;
     }
 }
