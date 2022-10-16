@@ -53,7 +53,7 @@ export async function deploy(chain: string, core: boolean) {
       fs.readFileSync(`./broadcast/Medici.s.sol/${network.chainId}/${scriptFn}-latest.json`).toString()
     ).transactions;
     for (const t of tx) {
-      if (t.contractName === 'MediciCore' || t.contractName === 'Periphery') {
+      if (t.contractName?.includes('MediciCore') || t.contractName?.includes('Periphery')) {
         deploymentAddress = t.contractAddress;
       }
     }
@@ -119,7 +119,6 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
 
   console.log(targetDeploymentInfo['address']);
   const emitterBuffer = Buffer.from(targetEmitter, 'hex');
-  console.log('emitter buffer: ', emitterBuffer);
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
     new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
   );

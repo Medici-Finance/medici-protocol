@@ -8,6 +8,10 @@ contract MediciGov is MediciState {
         _;
     }
 
+    function setNonce() public onlyOwner  {
+        _state.nonce = 0;
+    }
+
     /// @dev registerChain serves to save periphery contract addresses in core state
     function registerChain(uint16 periChainID, bytes32 periAddr) public onlyOwner {
         require(periAddr != bytes32(0), "Invalid address");

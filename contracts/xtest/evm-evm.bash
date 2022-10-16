@@ -1,6 +1,6 @@
-# npx ts-node orchestrator.ts deploy mumbai core
-# npx ts-node orchestrator.ts deploy goerli periphery
-# npx ts-node orchestrator.ts deploy fuji periphery
+npx ts-node orchestrator.ts deploy mumbai core
+npx ts-node orchestrator.ts deploy goerli periphery
+npx ts-node orchestrator.ts deploy fuji periphery
 
 # # npx ts-node orchestrator.ts verify goerli periphery
 

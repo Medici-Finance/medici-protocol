@@ -39,14 +39,13 @@ contract Medici is Script {
         vm.startBroadcast(deployerPrivateKey);
         config = new LocalConfig();
 
-        // string memory Xconfig = vm.readFile("../xdapp.config.json");
-        // string memory network = stdJson.readString(Xconfig, "key");
 
         core = new MediciCore(
             WORMHOLE_BC_MUMBAI,
             200,
             config.getPersonhoodAddress()
         );
+        core.setNonce();
         vm.stopBroadcast();
     }
 
