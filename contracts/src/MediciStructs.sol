@@ -27,7 +27,6 @@ struct BorrowRequestPayload {
     PayloadHeader header;
     uint256 borrowNormalizedAmount;
     address borrowAddress; // for verification
-    uint256 totalNormalizedBorrowAmount;
     uint256 tenor;
     uint256 apr;
 }
@@ -75,12 +74,15 @@ contract MediciStructs {
         return abi.encodePacked(header.sender);
     }
 
-    function decodePayloadHeader(bytes memory serialized) internal pure returns (PayloadHeader memory header) {
+    function decodePayloadHeader(bytes memory serialized) internal view returns (PayloadHeader memory header) {
         uint256 index = 0;
 
         // parse the header
-        header.payloadID = serialized.toUint8(index += 1);
-        header.sender = serialized.toAddress(index += 20);
+        header.payloadID = serialized.toUint8(index);
+        index += 1;
+        console.log("header working");
+        header.sender = serialized.toAddress(index);
+        console.log("header not working");
     }
 
     function encodeBorrowRequestPayload(BorrowRequestPayload memory payload) internal pure returns (bytes memory) {
@@ -89,7 +91,6 @@ contract MediciStructs {
             encodePayloadHeader(payload.header),
             payload.borrowNormalizedAmount,
             payload.borrowAddress,
-            payload.totalNormalizedBorrowAmount,
             payload.tenor,
             payload.apr
         );
@@ -97,20 +98,29 @@ contract MediciStructs {
 
     function decodeBorrowRequestPayload(bytes memory serialized)
         internal
-        pure
+        view
         returns (BorrowRequestPayload memory params)
     {
         uint256 index = 0;
 
         // parse the payload header
         params.header = decodePayloadHeader(serialized.slice(index, index += 21));
-        params.borrowNormalizedAmount = serialized.toUint256(index += 32);
-        params.borrowAddress = serialized.toAddress(index += 20);
-        params.totalNormalizedBorrowAmount = serialized.toUint256(index += 32);
-        params.tenor = serialized.toUint256(index += 32);
-        params.apr = serialized.toUint256(index += 32);
-
         require(params.header.payloadID == 1, "invalid payload");
+
+
+        params.borrowNormalizedAmount = serialized.toUint256(index);
+        index += 32;
+
+        params.borrowAddress = serialized.toAddress(index);
+        index += 20;
+
+        params.tenor = serialized.toUint256(index);
+        index += 32;
+
+        params.apr = serialized.toUint256(index);
+        index += 32;
+
+
         require(index == serialized.length, "index != serialized.length");
     }
 
@@ -126,7 +136,7 @@ contract MediciStructs {
 
     function decodeBorrowApprovePayload(bytes memory serialized)
         internal
-        pure
+        view
         returns (BorrowApprovePayload memory params)
     {
         uint256 index = 0;
@@ -154,7 +164,7 @@ contract MediciStructs {
 
     function decodeBorrowReceiptPayload(bytes memory serialized)
         internal
-        pure
+        view
         returns (BorrowReceiptPayload memory params)
     {
         uint256 index = 0;

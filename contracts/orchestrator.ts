@@ -87,15 +87,40 @@ medici
     await srcHandler.registerApp(src, target, node === 'core');
   });
 
+medici
+  .command('authenicate-address')
+  .description('Authenticates the target address with the worldID on the core chain')
+  .argument('<src>', 'the network you want to authenicate your address on')
+  .argument('<profile>', 'the profile you want to authenicate')
+  .action(async (src: string, profile: string) => {
+    if (!config.testnet[src]) {
+      console.error(`ERROR: ${src} not found in xdapp.config.json`);
+      return;
+    }
+
+    let srcHandler;
+    switch (config.testnet[src].type) {
+      case 'evm':
+        srcHandler = evm;
+        break;
+      case 'solana':
+        break;
+    }
+
+    console.log(`Authenticating ${profile} address on ${src} network`);
+    await srcHandler.authenticate(src, profile);
+  });
+
 // $ request-loan <amount> <apr> <tenor>
 medici
   .command('request-loan')
   .description('Requests a loan on the periphery source chain')
   .argument('<chain>', 'the network you want to request a loan on')
+  .argument('<profile>', 'the profile you want to request a loan with')
   .argument('<amount>', 'USDC amount to borrow, no decimals')
   .argument('<apr>', 'apr to borrow at, like 22.5%')
   .argument('<tenor>', 'tenor to borrow for in days, like 30')
-  .action(async (chain, amount, apr, tenor) => {
+  .action(async (chain, profile, amount, apr, tenor) => {
     if (!config.testnet[chain]) {
       console.error(`ERROR: ${chain} not found in xdapp.config.json`);
       return;
@@ -107,7 +132,7 @@ medici
           let aprUint = BigInt(parseFloat(apr) * 10 ** 16);
           let tenorUint = BigInt(tenor * 86400);
           console.log(`Requesting loan on ${chain} for ${amountUint} at ${aprUint} for ${tenorUint} seconds`);
-          await evm.requestLoan(chain, amountUint, aprUint, tenorUint);
+          await evm.requestLoan(chain, profile, amountUint, aprUint, tenorUint);
           break;
         case 'solana':
           break;

@@ -145,9 +145,32 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
   console.log(`Registered ${target} application on ${src}`);
 }
 
-export async function authenticate() {}
+export async function authenticate(src: string, profile: string) {
+  const srcNetwork = config.testnet[src];
+  let srcDeploymentInfo = checkDeploy(src);
+  let private_key =
+    profile === 'alice'
+      ? process.env.ALICE_PRIVATE_KEY
+      : profile === 'bob'
+      ? process.env.BOB_PRIVATE_KEY
+      : process.env.PRIVATE_KEY;
+  let publicAddress = new ethers.Wallet(private_key).address;
 
-export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
+  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(srcNetwork.rpc));
+
+  const core = new ethers.Contract(
+    srcDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/Personhood.sol/Personhood.json').toString()).abi,
+    signer
+  );
+
+  const tx = await core.authenticate(profile, {
+    gasLimit: 1000000,
+  });
+  console.log(`Authenticated ${profile} on ${src}`);
+}
+
+export async function requestLoan(chain: string, profile: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
   const srcNetwork = config.testnet[chain];
   let srcDeploymentInfo = checkDeploy(chain);
 

@@ -1,6 +1,5 @@
 pragma solidity 0.8.15;
 
-import "../helpers/BytesLib.sol";
 import {IWormhole} from "../wormhole/IWormhole.sol";
 
 import {MediciGov} from "./MediciGov.sol";
@@ -9,8 +8,6 @@ import "../MediciStructs.sol";
 import {Personhood} from "./Personhood.sol";
 
 contract MediciCore is MediciGov {
-    using BytesLib for bytes;
-
     Personhood ph;
 
     constructor(address wormholeContractAddress_, uint8 consistencyLevel_, address ph_) {

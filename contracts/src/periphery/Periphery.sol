@@ -48,7 +48,6 @@ contract Periphery is PeripheryGov, MediciStructs {
                     header: header,
                     borrowNormalizedAmount: loanAmt,
                     borrowAddress: _state.borrowingAssetAddress,
-                    totalNormalizedBorrowAmount: loanAmt,
                     apr: apr,
                     tenor: tenor
                 })
