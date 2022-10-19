@@ -160,12 +160,12 @@ export async function authenticate(src: string, profile: string) {
 
   const core = new ethers.Contract(
     srcDeploymentInfo.address,
-    JSON.parse(fs.readFileSync('./out/Personhood.sol/Personhood.json').toString()).abi,
+    JSON.parse(fs.readFileSync('./out/LocalConfig.sol/LocalConfig.json').toString()).abi,
     signer
   );
 
-  const tx = await core.authenticate(profile, {
-    gasLimit: 1000000,
+  const tx = await core.authBorrowerAccount(srcNetwork.wormholeChainId, publicAddress, {
+    gasLimit: 2100000,
   });
   console.log(`Authenticated ${profile} on ${src}`);
 }
@@ -174,9 +174,14 @@ export async function requestLoan(chain: string, profile: string, loanAmt: bigin
   const srcNetwork = config.testnet[chain];
   let srcDeploymentInfo = checkDeploy(chain);
 
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
-    new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
-  );
+  let private_key =
+    profile === 'alice'
+      ? process.env.ALICE_PRIVATE_KEY
+      : profile === 'bob'
+      ? process.env.BOB_PRIVATE_KEY
+      : process.env.PRIVATE_KEY;
+
+  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(srcNetwork.rpc));
 
   const periphery = new ethers.Contract(
     srcDeploymentInfo.address,
