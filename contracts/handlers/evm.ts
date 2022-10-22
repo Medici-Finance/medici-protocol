@@ -48,6 +48,7 @@ export async function deploy(chain: string, core: boolean) {
   }
 
   let deploymentAddress;
+  let localConfig;
   if (stdout) {
     let tx = JSON.parse(
       fs.readFileSync(`./broadcast/Medici.s.sol/${network.chainId}/${scriptFn}-latest.json`).toString()
@@ -55,6 +56,9 @@ export async function deploy(chain: string, core: boolean) {
     for (const t of tx) {
       if (t.contractName?.includes('MediciCore') || t.contractName?.includes('Periphery')) {
         deploymentAddress = t.contractAddress;
+      }
+      if (t.contractName?.includes('LocalConfig')) {
+        localConfig = t.contractAddress;
       }
     }
     console.log('contracts at ', deploymentAddress);
@@ -65,6 +69,7 @@ export async function deploy(chain: string, core: boolean) {
       JSON.stringify(
         {
           address: deploymentAddress,
+          localConfig: localConfig || null,
           vaas: emittedVAAs,
         },
         null,
@@ -147,7 +152,9 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
 
 export async function authenticate(src: string, profile: string) {
   const srcNetwork = config.testnet[src];
-  let srcDeploymentInfo = checkDeploy(src);
+  const coreNetwork = config.testnet['mumbai'];
+  let coreDeploymentInfo = checkDeploy('mumbai');
+
   let private_key =
     profile === 'alice'
       ? process.env.ALICE_PRIVATE_KEY
@@ -156,19 +163,24 @@ export async function authenticate(src: string, profile: string) {
       : process.env.PRIVATE_KEY;
   let publicAddress = new ethers.Wallet(private_key).address;
 
-  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(srcNetwork.rpc));
+  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(coreNetwork.rpc));
 
   const core = new ethers.Contract(
-    srcDeploymentInfo.address,
+    coreDeploymentInfo.localConfig,
     JSON.parse(fs.readFileSync('./out/LocalConfig.sol/LocalConfig.json').toString()).abi,
     signer
   );
 
+  // console.log('rpc for verify: ', coreNetwork.rpc);
+  // console.log(publicAddress, 'pub for ', private_key);
   const tx = await core.authBorrowerAccount(srcNetwork.wormholeChainId, publicAddress, {
     gasLimit: 2100000,
   });
   console.log(`Authenticated ${profile} on ${src}`);
 }
+
+// TODO: get worldId and parse all wormhole addresses
+export async function getProfile(profile: string) {}
 
 export async function requestLoan(chain: string, profile: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
   const srcNetwork = config.testnet[chain];
