@@ -117,7 +117,7 @@ contract Personhood {
         }
     }
 
-    function _encodeWAddress(uint16 _chainId, address _address) internal  returns (bytes memory) {
+    function _encodeWAddress(uint16 _chainId, address _address) public  returns (bytes memory) {
         bytes memory addy = new bytes(32);
         assembly {
             mstore(add(addy, 32), _address)
@@ -144,6 +144,30 @@ contract Personhood {
 
         // recording new user signup
         wAddressesVerified[wBorrower] = 0;
+        return true;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ///                       TESTS SANS WORLDID                             ///
+    ////////////////////////////////////////////////////////////////////////////
+
+    mapping(uint256 => bool) profiles;
+
+    function addProfile(string memory profile) external {
+        profiles[uint(keccak256(abi.encodePacked(profile)))] = true;
+    }
+
+    /// @param wBorrower Wormhole address as an arbitrary input as signal from the user
+    /// @param profile hacky workaround testing without worldId
+    function hackAuthenicate(bytes memory wBorrower, string memory profile)
+        external
+        returns (bool)
+    {
+        require(profiles[uint(keccak256(abi.encodePacked(profile)))], "Profile not added");
+
+        // recording new user signup
+        wAddressesVerified[wBorrower] =
+            uint(keccak256(abi.encodePacked(profile)));
         return true;
     }
 }

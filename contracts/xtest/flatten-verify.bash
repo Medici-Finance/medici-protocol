@@ -1,12 +1,13 @@
 
-rm ../src/fCore.sol
-rm ../src/fPeriphery.sol
+rm src/flattened/fCore.sol
+rm src/flattened/fPeriphery.sol
 
-forge flatten ../src/core/MediciCore.sol >> ../src/fCore.sol
-forge flatten ../src/periphery/Periphery.sol >> ../src/fPeriphery.sol
 
-grep -v "SPDX" ../src/fCore.sol > tmpfile && mv tmpfile ../src/fCore.sol
-grep -v "SPDX" ../src/fPeriphery.sol > tmpfile && mv tmpfile ../src/fPeriphery.sol
+forge flatten src/core/MediciCore.sol >> src/flattened/fCore.sol
+forge flatten src/periphery/Periphery.sol >> src/flattened/fPeriphery.sol
 
 # remove spdx comments - **sigh**
+grep -v "SPDX" src/flattened/fCore.sol > tmpfile && mv tmpfile src/flattened/fCore.sol
+grep -v "SPDX" src/flattened/fPeriphery.sol > tmpfile && mv tmpfile src/flattened/fPeriphery.sol
+
 forge build

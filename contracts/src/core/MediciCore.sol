@@ -110,6 +110,12 @@ contract MediciCore is MediciGov {
         incrementNonce();
     }
 
+    // easier testing - temp
+    function hackPerson(uint16 chainId, address person, string memory profile) external {
+        ph.addProfile(profile);
+        ph.hackAuthenicate(ph._encodeWAddress(chainId, person), profile);
+    }
+
     // necessary for receiving native assets
     receive() external payable {}
 }

@@ -56,7 +56,7 @@ contract Periphery is PeripheryGov, MediciStructs {
         emit PeripheryLoanRequest(nonce());
     }
 
-    function initLend(uint256 loanId, uint256 amount) external returns (uint256 wormholeSeq) {
+    function supply(uint256 loanId, uint256 amount) external returns (uint256 wormholeSeq) {
         SafeERC20.safeTransferFrom(collateralToken(), msg.sender, address(this), amount);
 
 

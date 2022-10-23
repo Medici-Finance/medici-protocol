@@ -57,9 +57,6 @@ export async function deploy(chain: string, core: boolean) {
       if (t.contractName?.includes('MediciCore') || t.contractName?.includes('Periphery')) {
         deploymentAddress = t.contractAddress;
       }
-      if (t.contractName?.includes('LocalConfig')) {
-        localConfig = t.contractAddress;
-      }
     }
     console.log('contracts at ', deploymentAddress);
     const emittedVAAs = []; //Resets the emittedVAAs
@@ -69,7 +66,7 @@ export async function deploy(chain: string, core: boolean) {
       JSON.stringify(
         {
           address: deploymentAddress,
-          localConfig: localConfig || null,
+          // localConfig: localConfig || null,
           vaas: emittedVAAs,
         },
         null,
@@ -150,6 +147,36 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
   console.log(`Registered ${target} application on ${src}`);
 }
 
+// export async function authenticate(src: string, profile: string) {
+//   const srcNetwork = config.testnet[src];
+//   const coreNetwork = config.testnet['mumbai'];
+//   let coreDeploymentInfo = checkDeploy('mumbai');
+
+//   let private_key =
+//     profile === 'alice'
+//       ? process.env.ALICE_PRIVATE_KEY
+//       : profile === 'bob'
+//       ? process.env.BOB_PRIVATE_KEY
+//       : process.env.PRIVATE_KEY;
+//   let publicAddress = new ethers.Wallet(private_key).address;
+
+//   const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(coreNetwork.rpc));
+
+//   const core = new ethers.Contract(
+//     coreDeploymentInfo.localConfig,
+//     JSON.parse(fs.readFileSync('./out/LocalConfig.sol/LocalConfig.json').toString()).abi,
+//     signer
+//   );
+
+//   // console.log('rpc for verify: ', coreNetwork.rpc);
+//   // console.log(publicAddress, 'pub for ', private_key);
+//   const tx = await core.authBorrowerAccount(srcNetwork.wormholeChainId, publicAddress, {
+//     gasLimit: 2100000,
+//   });
+//   console.log(`Authenticated ${profile} on ${src}`);
+// }
+
+// hacky version
 export async function authenticate(src: string, profile: string) {
   const srcNetwork = config.testnet[src];
   const coreNetwork = config.testnet['mumbai'];
@@ -166,14 +193,12 @@ export async function authenticate(src: string, profile: string) {
   const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(coreNetwork.rpc));
 
   const core = new ethers.Contract(
-    coreDeploymentInfo.localConfig,
-    JSON.parse(fs.readFileSync('./out/LocalConfig.sol/LocalConfig.json').toString()).abi,
+    coreDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
     signer
   );
 
-  // console.log('rpc for verify: ', coreNetwork.rpc);
-  // console.log(publicAddress, 'pub for ', private_key);
-  const tx = await core.authBorrowerAccount(srcNetwork.wormholeChainId, publicAddress, {
+  const tx = await core.hackPerson(srcNetwork.wormholeChainId, publicAddress, profile, {
     gasLimit: 2100000,
   });
   console.log(`Authenticated ${profile} on ${src}`);
@@ -262,21 +287,21 @@ export async function submitVaa(src: string, target: string, idx: string) {
   return tx;
 }
 
-export async function getOpenLoans(core: string) {
-  const coreNetwork = config.testnet[core];
-  let coreDeploymentInfo = checkDeploy(core);
+export async function getOpenLoans() {
+  const coreNetwork = config.testnet['mumbai'];
+  let coreDeploymentInfo = checkDeploy('mumbai');
 
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
     new ethers.providers.JsonRpcProvider(coreNetwork.rpc)
   );
 
-  const periphery = new ethers.Contract(
+  const core = new ethers.Contract(
     coreDeploymentInfo.address,
     JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
     signer
   );
 
-  return await periphery.getOpenLoans();
+  return await core.getOpenLoans();
 }
 
 export async function initLend() {}
