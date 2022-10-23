@@ -18,6 +18,13 @@ contract Medici is Script {
     Periphery periphery;
 
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    address deployerAddress = vm.envAddress("ADDRESS");
+
+    uint256 alicePrivateKey = vm.envUint("ALICE_PRIVATE_KEY");
+    address aliceAddress = vm.envAddress("ALICE_ADDRESS");
+
+    uint256 bobPrivateKey = vm.envUint("BOB_PRIVATE_KEY");
+    address bobAddress = vm.envAddress("BOB_ADDRESS");
 
     address WORMHOLE_BC_MUMBAI = 0x0CBE91CF822c73C2315FB05100C2F714765d5c20;
     address WORMHOLE_BC_GOERLI = 0x706abc4E45D419950511e474C7B9Ed348A4a716c;
@@ -32,14 +39,13 @@ contract Medici is Script {
         vm.startBroadcast(deployerPrivateKey);
         config = new LocalConfig();
 
-        // string memory Xconfig = vm.readFile("../xdapp.config.json");
-        // string memory network = stdJson.readString(Xconfig, "key");
 
         core = new MediciCore(
             WORMHOLE_BC_MUMBAI,
             200,
             config.getPersonhoodAddress()
         );
+        core.setNonce();
         vm.stopBroadcast();
     }
 
@@ -48,6 +54,9 @@ contract Medici is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         ERC20Mintable gUSDC = new ERC20Mintable("gUSDC", "gUSDC", 6);
+        gUSDC.mint(aliceAddress, 1000_000e6);
+        gUSDC.mint(bobAddress, 1000_000e6);
+
         periphery = new Periphery(
             WORMHOLE_BC_GOERLI,
             200,
@@ -68,6 +77,8 @@ contract Medici is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         ERC20Mintable fUSDC = new ERC20Mintable("fUSDC", "fUSDC", 6);
+        fUSDC.mint(aliceAddress, 1000_000e6);
+        fUSDC.mint(bobAddress, 1000_000e6);
 
         periphery = new Periphery(
             WORMHOLE_BC_FUJI,

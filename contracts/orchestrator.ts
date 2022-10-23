@@ -35,6 +35,30 @@ medici
   });
 
 medici
+  .command('verify')
+  .description("Verifies on the chain's explorer")
+  .argument('<chain>', 'the network you want to verify')
+  .argument('<node>', 'core or periphery')
+  .action(async (chain: string, node: string) => {
+    if (!config.testnet[chain]) {
+      console.error(`ERROR: ${chain} not found in xdapp.config.json`);
+      return;
+    }
+
+    let srcHandler;
+    switch (config.testnet[chain].type) {
+      case 'evm':
+        srcHandler = evm;
+        break;
+      case 'solana':
+        break;
+    }
+
+    console.log(`Verifying ${node} contracts on ${chain} explorer -- `);
+    await srcHandler.verifyContracts(chain, node === 'core');
+  });
+
+medici
   .command('register-app')
   .description('Registers the target app and target token with the source on chain app')
   .argument('<src>', 'the network you want to register the app on')
@@ -63,15 +87,40 @@ medici
     await srcHandler.registerApp(src, target, node === 'core');
   });
 
+medici
+  .command('authenicate-address')
+  .description('Authenticates the target address with the worldID on the core chain')
+  .argument('<src>', 'the network you want to authenicate your address on')
+  .argument('<profile>', 'the profile you want to authenicate')
+  .action(async (src: string, profile: string) => {
+    if (!config.testnet[src]) {
+      console.error(`ERROR: ${src} not found in xdapp.config.json`);
+      return;
+    }
+
+    let srcHandler;
+    switch (config.testnet[src].type) {
+      case 'evm':
+        srcHandler = evm;
+        break;
+      case 'solana':
+        break;
+    }
+
+    console.log(`Authenticating ${profile} address on ${src} network`);
+    await srcHandler.authenticate(src, profile);
+  });
+
 // $ request-loan <amount> <apr> <tenor>
 medici
   .command('request-loan')
   .description('Requests a loan on the periphery source chain')
   .argument('<chain>', 'the network you want to request a loan on')
+  .argument('<profile>', 'the profile you want to request a loan with')
   .argument('<amount>', 'USDC amount to borrow, no decimals')
   .argument('<apr>', 'apr to borrow at, like 22.5%')
   .argument('<tenor>', 'tenor to borrow for in days, like 30')
-  .action(async (chain, amount, apr, tenor) => {
+  .action(async (chain, profile, amount, apr, tenor) => {
     if (!config.testnet[chain]) {
       console.error(`ERROR: ${chain} not found in xdapp.config.json`);
       return;
@@ -83,7 +132,7 @@ medici
           let aprUint = BigInt(parseFloat(apr) * 10 ** 16);
           let tenorUint = BigInt(tenor * 86400);
           console.log(`Requesting loan on ${chain} for ${amountUint} at ${aprUint} for ${tenorUint} seconds`);
-          await evm.requestLoan(chain, amountUint, aprUint, tenorUint);
+          await evm.requestLoan(chain, profile, amountUint, aprUint, tenorUint);
           break;
         case 'solana':
           break;
@@ -94,6 +143,67 @@ medici
     }
   });
 
-medici;
+// $ submit-vaa <source> <target> <vaa#>
+medici
+  .command('submit-vaa')
+  .argument('<source>', 'The network you want to submit the VAA on')
+  .argument('<target>', 'The network you want to receive the VAA on')
+  .argument(
+    '<vaa#>',
+    "The index of the VAA in the list of emitted VAAs that you want to submit. Use 'latest' to submit the latest VAA"
+  )
+  .action(async (src, target, idx) => {
+    if (!config.testnet[src]) {
+      console.error(`ERROR: ${src} not found in xdapp.config.json`);
+      return;
+    }
+    if (!config.testnet[target]) {
+      console.error(`ERROR: ${target} not found in xdapp.config.json`);
+      return;
+    }
+
+    try {
+      switch (config.testnet[src].type) {
+        case 'evm':
+          await evm.submitVaa(src, target, idx);
+          break;
+        case 'solana':
+          // await solana.submitVaa(src, target, idx);
+          break;
+      }
+
+      console.log(`Submitted VAA #${idx} from ${src} to chain ${target}`);
+    } catch (e) {
+      console.error(`ERROR: ${e}`);
+    }
+  });
+
+// $ all-loans
+medici
+  .command('all-loans')
+  .argument('<core>', 'The core network holding the global state')
+  .action(async (core) => {
+    if (!config.testnet[core]) {
+      console.error(`ERROR: ${core} not found in xdapp.config.json`);
+      return;
+    }
+
+    let allLoans;
+
+    try {
+      switch (config.testnet[core].type) {
+        case 'evm':
+          allLoans = await evm.getOpenLoans(core);
+          break;
+        case 'solana':
+          // await solana.submitVaa(src, target, idx);
+          break;
+      }
+
+      console.log(`Reading open loans state from ${core}: ${JSON.stringify(allLoans)}`);
+    } catch (e) {
+      console.error(`ERROR: ${e}`);
+    }
+  });
 
 medici.parse(process.argv);

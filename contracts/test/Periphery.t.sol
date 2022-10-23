@@ -38,6 +38,9 @@ contract PeripheryTest is BaseTest {
     }
 
     function testRegister() public {
-        // periphery.registerCore();
+        periphery.registerCore(
+            2,
+            0x00000000000000000000000067dc5647475b0344c38b347a1808593ef5f56ad6
+        );
     }
 }

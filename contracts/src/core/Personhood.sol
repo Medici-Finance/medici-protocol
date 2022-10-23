@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
 import {ByteHasher} from "../helpers/ByteHasher.sol";
@@ -7,9 +6,9 @@ import {IWorldID} from "../interfaces/IWorldID.sol";
 contract Personhood {
     using ByteHasher for bytes;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                                  ERRORS
-    //////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ///                                  ERRORS                              ///
+    ////////////////////////////////////////////////////////////////////////////
 
     /// @notice Thrown when attempting to reuse a nullifier
     error InvalidNullifier();
@@ -34,12 +33,61 @@ contract Personhood {
         _actionID = _id;
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    ///                       EXTERNAL FUNCTIONS                             ///
+    ////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Public function encoding EVM addresses to 34 byte Wormhole addresses and verifying proof to authenicate address
+     * @param chainId wormhole chain ID
+     * @param account EVM address
+     * See _authenicate for the rest of the params
+     */
+    function authenicate(
+        uint16 chainId,
+        address account,
+        uint256 root,
+        uint256 nullifierHash,
+        uint256[8] calldata proof
+    ) public returns (bool) {
+        bytes memory wBorrower = _encodeWAddress(chainId, account);
+        return _authenicate(wBorrower, root, nullifierHash, proof);
+    }
+
+    /**
+     * @notice Public function encoding EVM addresses to 34 byte Wormhole addresses and verifying proof to deauthenicate addreees
+     * @param chainId wormhole chain ID
+     * @param account EVM address
+     * See _deauthenicate for the rest of the params
+     */
+    function deuathenicate(
+        uint16 chainId,
+        address account,
+        uint256 root,
+        uint256 nullifierHash,
+        uint256[8] calldata proof
+    ) public returns (bool) {
+        bytes memory wBorrower = _encodeWAddress(chainId, account);
+        return _deauthenicate(wBorrower, root, nullifierHash, proof);
+    }
+
+
+    function getPerson(bytes memory wBorrower) public view returns (uint256 nullifierHash) {
+        require(wAddressesVerified[wBorrower] != 0, "Personhood: borrower not verified");
+        return wAddressesVerified[wBorrower];
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ///                       INTERNAL FUNCTIONS                             ///
+    ////////////////////////////////////////////////////////////////////////////
+
     /// @param wBorrower Wormhole address as an arbitrary input as signal from the user
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
-    function authenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
-        public
+    function _authenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+        private
         returns (bool)
     {
         // make sure person hasn't already signed up using a different address
@@ -61,7 +109,23 @@ contract Personhood {
         return true;
     }
 
-    function deauthenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
+    function toBytes(uint16 x) public returns (bytes memory c) {
+        bytes2 b = bytes2(x);
+        c = new bytes(2);
+        for (uint256 i = 0; i < 2; i++) {
+            c[i] = b[i];
+        }
+    }
+
+    function _encodeWAddress(uint16 _chainId, address _address) public  returns (bytes memory) {
+        bytes memory addy = new bytes(32);
+        assembly {
+            mstore(add(addy, 32), _address)
+        }
+        return bytes.concat(toBytes(_chainId), addy);
+    }
+
+    function _deauthenicate(bytes memory wBorrower, uint256 root, uint256 nullifierHash, uint256[8] calldata proof)
         public
         returns (bool)
     {
@@ -83,8 +147,27 @@ contract Personhood {
         return true;
     }
 
-    function getPerson(bytes memory wBorrower) public view returns (uint256 nullifierHash) {
-        require(wAddressesVerified[wBorrower] != 0, "Personhood: borrower not verified");
-        return wAddressesVerified[wBorrower];
+    ////////////////////////////////////////////////////////////////////////////
+    ///                       TESTS SANS WORLDID                             ///
+    ////////////////////////////////////////////////////////////////////////////
+
+    mapping(uint256 => bool) profiles;
+
+    function addProfile(string memory profile) external {
+        profiles[uint(keccak256(abi.encodePacked(profile)))] = true;
+    }
+
+    /// @param wBorrower Wormhole address as an arbitrary input as signal from the user
+    /// @param profile hacky workaround testing without worldId
+    function hackAuthenicate(bytes memory wBorrower, string memory profile)
+        external
+        returns (bool)
+    {
+        require(profiles[uint(keccak256(abi.encodePacked(profile)))], "Profile not added");
+
+        // recording new user signup
+        wAddressesVerified[wBorrower] =
+            uint(keccak256(abi.encodePacked(profile)));
+        return true;
     }
 }

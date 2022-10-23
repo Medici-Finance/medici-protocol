@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 
 import "./InteractsWithWorldID.sol";
+import "../src/MediciStructs.sol";
 
 contract LocalConfig is InteractsWithWorldID {
     NetworkConfig public activeNetworkConfig;
@@ -35,13 +36,32 @@ contract LocalConfig is InteractsWithWorldID {
         return address(ph);
     }
 
-    function verifyBorrower(bytes memory wBorrower) external returns (bool) {
+    function authBorrowerAccount(uint8 chainId, address account) external returns (bool) {
         registerIdentity(); // this simulates a World ID "verified" identity
 
-        (uint256 nullifierHash, uint256[8] memory proof) = getProof(address(ph), wBorrower);
+        (uint256 nullifierHash, uint256[8] memory proof) = getProof(address(ph),_encodeWAddress(chainId, account));
 
-        return ph.authenicate(wBorrower, getRoot(), nullifierHash, proof);
+        return ph.authenicate(chainId, account, getRoot(), nullifierHash, proof);
     }
+
+
+    function toBytes(uint16 x) public returns (bytes memory c) {
+        bytes2 b = bytes2(x);
+        c = new bytes(2);
+        for (uint256 i = 0; i < 2; i++) {
+            c[i] = b[i];
+        }
+    }
+
+    // helper util
+    function _encodeWAddress(uint16 _chainId, address _address) public returns (bytes memory) {
+        bytes memory addy = new bytes(32);
+        assembly {
+            mstore(add(addy, 32), _address)
+        }
+        return bytes.concat(toBytes(_chainId), addy);
+    }
+
 
     function getRinkebyEthConfig() internal pure returns (NetworkConfig memory rinkebyNetworkConfig) {
         rinkebyNetworkConfig = NetworkConfig({

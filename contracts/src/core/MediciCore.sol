@@ -1,8 +1,5 @@
-// SPDX-License-Identifier: Apache 2
-
 pragma solidity 0.8.15;
 
-import "../helpers/BytesLib.sol";
 import {IWormhole} from "../wormhole/IWormhole.sol";
 
 import {MediciGov} from "./MediciGov.sol";
@@ -11,8 +8,6 @@ import "../MediciStructs.sol";
 import {Personhood} from "./Personhood.sol";
 
 contract MediciCore is MediciGov {
-    using BytesLib for bytes;
-
     Personhood ph;
 
     constructor(address wormholeContractAddress_, uint8 consistencyLevel_, address ph_) {
@@ -24,32 +19,31 @@ contract MediciCore is MediciGov {
     }
 
     function initLoan(bytes calldata encodedVm) external {
-        /// @dev confirms that the message is from Periphery and valid
-        // parse and verify the wormhole BorrowMessage
+        /// @dev confirms that the payload is from Periphery and valid
+        // parse and verify the wormhole BorrowRequestPayload
         (IWormhole.VM memory parsed, bool valid, string memory reason) = wormhole().parseAndVerifyVM(encodedVm);
         require(valid, reason);
 
         require(valid, reason);
         require(verifyEmitterVM(parsed), "Invalid emitter");
 
-        require(!getMessageHashes(parsed.hash), "Message already processed");
-        processMessageHash(parsed.hash);
+        require(!getPayloadHashes(parsed.hash), "Payload already processed");
+        processPayloadHash(parsed.hash);
 
-        BorrowRequestMessage memory params = decodeBorrowRequestMessage(parsed.payload);
+        BorrowRequestPayload memory params = decodeBorrowRequestPayload(parsed.payload);
         bytes memory wBorrower = encodeWAddress(parsed.emitterChainId, params.header.sender);
         uint256 worldID = ph.getPerson(wBorrower);
 
         Loan memory loan = Loan({
             borrower: wBorrower,
             worldID: worldID,
-            principal: params.borrowAmount,
+            principal: params.borrowNormalizedAmount,
             pending: 0,
             tenor: params.tenor,
             apr: params.apr,
             // TODO: fix this
             repaymentTime: block.timestamp + params.tenor,
-            collateral: params.header.collateralAddress,
-            collateralAmt: 0
+            collateralNormalizedAmt: 0
         });
         setNextLoan(loan);
 
@@ -60,7 +54,7 @@ contract MediciCore is MediciGov {
     }
 
     function updateLoanReceipt(bytes memory encodedVm) external returns (uint256 wormholeSeq){
-        // parse and verify the wormhole BorrowMessage
+        // parse and verify the wormhole BorrowPayload
         (
             IWormhole.VM memory parsed,
             bool valid,
@@ -74,7 +68,7 @@ contract MediciCore is MediciGov {
         // TODO: check header for token
         // TODO: check target liquidity
 
-        BorrowApproveMessage memory params = decodeBorrowApproveMessage(parsed.payload);
+        BorrowApprovePayload memory params = decodeBorrowApprovePayload(parsed.payload);
         uint256 loanId = params.loanId;
         address lender = params.header.sender;
         uint256 amount = params.approveAmount;
@@ -82,19 +76,16 @@ contract MediciCore is MediciGov {
         updateRiskDAG(loanId, lender, amount);
         updateLoan(loanId, amount);
 
-        MessageHeader memory header = MessageHeader({
+        PayloadHeader memory header = PayloadHeader({
             payloadID: uint8(3),
-            sender: msg.sender,
-            // TODO: look at this
-            collateralAddress: address(0),
-            borrowAddress: address(0)
+            sender: msg.sender
         });
 
         (uint16 chainId, address borrower) = getBorrower(loanId);
 
         wormholeSeq = sendWormholeMessage(
-            encodeBorrowReceiptMessage(
-                BorrowReceiptMessage({
+            encodeBorrowReceiptPayload(
+                BorrowReceiptPayload({
                     header: header,
                     chainId: chainId,
                     loanId: loanId,
@@ -117,6 +108,12 @@ contract MediciCore is MediciGov {
             consistencyLevel()
         );
         incrementNonce();
+    }
+
+    // easier testing - temp
+    function hackPerson(uint16 chainId, address person, string memory profile) external {
+        ph.addProfile(profile);
+        ph.hackAuthenicate(ph._encodeWAddress(chainId, person), profile);
     }
 
     // necessary for receiving native assets

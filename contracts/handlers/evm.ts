@@ -20,18 +20,15 @@ dotenv.config();
 const exec = promisify(require('child_process').exec);
 const config = JSON.parse(fs.readFileSync('./xdapp.config.json').toString());
 
-// let ABI = {};
-// try {
-//   ABI = JSON.parse(fs.readFileSync('./chains/evm/out/MediciCore.sol/MediciCore.json').toString()).abi;
-// } catch (e) {
-//   // fail silenty
-//   // The only time this fails is when deploy hasn't been called, in which case, this isn't needed
-// }
-
-// `forge script test/Medici.s.sol:Medici --legacy --rpc-url ${} -g 1000 --json`,
-
-// `forge build && forge create test/Medici.s.sol:Medici --legacy --rpc-url ${network.rpc} --broadcast -vvv`,
-// `forge build && forge create --legacy --rpc-url ${network.rpc} --private-key ${network.privateKey} test/LocalConfig.sol:LocalConfig src/core/MediciCore.sol:MediciCore && exit`
+function checkDeploy(chain: string) {
+  let deployInfo;
+  try {
+    deployInfo = JSON.parse(fs.readFileSync(`./deployinfo/${chain}.deploy.json`).toString());
+  } catch (e) {
+    throw new Error(`${chain} is not deployed yet`);
+  }
+  return deployInfo;
+}
 
 /**
  * 1. Deploy on chain core contract
@@ -51,13 +48,17 @@ export async function deploy(chain: string, core: boolean) {
   }
 
   let deploymentAddress;
+  let localConfig;
   if (stdout) {
-    let tx = JSON.parse(fs.readFileSync('./broadcast/Medici.s.sol/5/deployCore-latest.json').toString()).transactions;
+    let tx = JSON.parse(
+      fs.readFileSync(`./broadcast/Medici.s.sol/${network.chainId}/${scriptFn}-latest.json`).toString()
+    ).transactions;
     for (const t of tx) {
-      if (t.contractName === 'MediciCore') {
+      if (t.contractName?.includes('MediciCore') || t.contractName?.includes('Periphery')) {
         deploymentAddress = t.contractAddress;
       }
     }
+    console.log('contracts at ', deploymentAddress);
     const emittedVAAs = []; //Resets the emittedVAAs
 
     fs.writeFileSync(
@@ -65,6 +66,7 @@ export async function deploy(chain: string, core: boolean) {
       JSON.stringify(
         {
           address: deploymentAddress,
+          // localConfig: localConfig || null,
           vaas: emittedVAAs,
         },
         null,
@@ -74,24 +76,38 @@ export async function deploy(chain: string, core: boolean) {
   }
 }
 
+export async function verifyContracts(chain: string, node: boolean) {
+  const network = config.testnet[chain];
+
+  let srcDeploymentInfo;
+
+  try {
+    srcDeploymentInfo = JSON.parse(fs.readFileSync(`./deployinfo/${chain}.deploy.json`).toString());
+  } catch (e) {
+    throw new Error(`${chain} is not deployed yet`);
+  }
+
+  // TODO - verify core
+  // TODO - verify periphery
+  const script = `forge verify-contract ${srcDeploymentInfo.address} src/periphery/Periphery.sol:Periphery ${process.env.ETHERSCAN_API_KEY} --chain-id 5`;
+
+  const { stdout, stderr } = await exec(script);
+
+  if (stderr) {
+    throw new Error(stderr);
+  }
+
+  if (stdout) {
+    console.log(stdout);
+  }
+}
+
 export async function registerApp(src: string, target: string, isCore: boolean) {
   const srcNetwork = config.testnet[src];
   const targetNetwork = config.testnet[target];
-  let srcDeploymentInfo;
-  let targetDeploymentInfo;
+  let srcDeploymentInfo = checkDeploy(src);
+  let targetDeploymentInfo = checkDeploy(target);
   let targetEmitter;
-
-  try {
-    srcDeploymentInfo = JSON.parse(fs.readFileSync(`./deployinfo/${src}.deploy.json`).toString());
-  } catch (e) {
-    throw new Error(`${src} is not deployed yet`);
-  }
-
-  try {
-    targetDeploymentInfo = JSON.parse(fs.readFileSync(`./deployinfo/${target}.deploy.json`).toString());
-  } catch (e) {
-    throw new Error(`${target} is not deployed yet`);
-  }
 
   switch (targetNetwork['type']) {
     case 'evm':
@@ -131,20 +147,78 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
   console.log(`Registered ${target} application on ${src}`);
 }
 
-export async function authenticate() {}
+// export async function authenticate(src: string, profile: string) {
+//   const srcNetwork = config.testnet[src];
+//   const coreNetwork = config.testnet['mumbai'];
+//   let coreDeploymentInfo = checkDeploy('mumbai');
 
-export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
-  const srcNetwork = config.testnet[chain];
-  let srcDeploymentInfo;
-  try {
-    srcDeploymentInfo = JSON.parse(fs.readFileSync(`./deployinfo/${chain}.deploy.json`).toString());
-  } catch (e) {
-    throw new Error(`${chain} is not deployed yet`);
-  }
+//   let private_key =
+//     profile === 'alice'
+//       ? process.env.ALICE_PRIVATE_KEY
+//       : profile === 'bob'
+//       ? process.env.BOB_PRIVATE_KEY
+//       : process.env.PRIVATE_KEY;
+//   let publicAddress = new ethers.Wallet(private_key).address;
 
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
-    new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
+//   const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(coreNetwork.rpc));
+
+//   const core = new ethers.Contract(
+//     coreDeploymentInfo.localConfig,
+//     JSON.parse(fs.readFileSync('./out/LocalConfig.sol/LocalConfig.json').toString()).abi,
+//     signer
+//   );
+
+//   // console.log('rpc for verify: ', coreNetwork.rpc);
+//   // console.log(publicAddress, 'pub for ', private_key);
+//   const tx = await core.authBorrowerAccount(srcNetwork.wormholeChainId, publicAddress, {
+//     gasLimit: 2100000,
+//   });
+//   console.log(`Authenticated ${profile} on ${src}`);
+// }
+
+// hacky version
+export async function authenticate(src: string, profile: string) {
+  const srcNetwork = config.testnet[src];
+  const coreNetwork = config.testnet['mumbai'];
+  let coreDeploymentInfo = checkDeploy('mumbai');
+
+  let private_key =
+    profile === 'alice'
+      ? process.env.ALICE_PRIVATE_KEY
+      : profile === 'bob'
+      ? process.env.BOB_PRIVATE_KEY
+      : process.env.PRIVATE_KEY;
+  let publicAddress = new ethers.Wallet(private_key).address;
+
+  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(coreNetwork.rpc));
+
+  const core = new ethers.Contract(
+    coreDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+    signer
   );
+
+  const tx = await core.hackPerson(srcNetwork.wormholeChainId, publicAddress, profile, {
+    gasLimit: 2100000,
+  });
+  console.log(`Authenticated ${profile} on ${src}`);
+}
+
+// TODO: get worldId and parse all wormhole addresses
+export async function getProfile(profile: string) {}
+
+export async function requestLoan(chain: string, profile: string, loanAmt: bigint, apr: bigint, tenor: bigint) {
+  const srcNetwork = config.testnet[chain];
+  let srcDeploymentInfo = checkDeploy(chain);
+
+  let private_key =
+    profile === 'alice'
+      ? process.env.ALICE_PRIVATE_KEY
+      : profile === 'bob'
+      ? process.env.BOB_PRIVATE_KEY
+      : process.env.PRIVATE_KEY;
+
+  const signer = new ethers.Wallet(private_key).connect(new ethers.providers.JsonRpcProvider(srcNetwork.rpc));
 
   const periphery = new ethers.Contract(
     srcDeploymentInfo.address,
@@ -152,14 +226,16 @@ export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, t
     signer
   );
 
-  console.log('Requesting loan');
-  const tx = await periphery.request(loanAmt, apr, tenor, {
-    gasLimit: 1000000,
-  });
-  await tx.wait();
-  console.log('Loan working');
+  const tx = await (
+    await periphery.request(loanAmt, apr, tenor, {
+      gasLimit: 1000000,
+    })
+  ).wait();
+
   const seq = parseSequenceFromLogEth(tx, srcNetwork['bridgeAddress']);
+  console.log('Sequence', seq);
   const emitterAddr = getEmitterAddressEth(srcDeploymentInfo['address']);
+  console.log('Emitter', emitterAddr);
 
   await new Promise((r) => setTimeout(r, 5000)); // wait for the guardian to pick up the loan request
 
@@ -184,3 +260,48 @@ export async function requestLoan(chain: string, loanAmt: bigint, apr: bigint, t
   fs.writeFileSync(`./deployinfo/${chain}.deploy.json`, JSON.stringify(srcDeploymentInfo, null, 4));
   return vaaBytes['vaaBytes'];
 }
+
+export async function submitVaa(src: string, target: string, idx: string) {
+  const targetNetwork = config.testnet[target];
+  let srcDeploymentInfo = checkDeploy(src);
+  console.log('Target - ', target);
+  let targetDeploymentInfo = checkDeploy(target);
+
+  const vaa = isNaN(parseInt(idx)) ? srcDeploymentInfo.vaas.pop() : srcDeploymentInfo.vaas[parseInt(idx)];
+
+  // testing
+  console.log('testing - ', Buffer.from(vaa, 'base64').toString('hex'));
+
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
+    new ethers.providers.JsonRpcProvider(targetNetwork.rpc)
+  );
+  const core = new ethers.Contract(
+    targetDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+    signer
+  );
+  const tx = await core.initLoan(Buffer.from(vaa, 'base64'), {
+    gasLimit: 2100000,
+  });
+  console.log(tx);
+  return tx;
+}
+
+export async function getOpenLoans() {
+  const coreNetwork = config.testnet['mumbai'];
+  let coreDeploymentInfo = checkDeploy('mumbai');
+
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
+    new ethers.providers.JsonRpcProvider(coreNetwork.rpc)
+  );
+
+  const core = new ethers.Contract(
+    coreDeploymentInfo.address,
+    JSON.parse(fs.readFileSync('./out/MediciCore.sol/MediciCore.json').toString()).abi,
+    signer
+  );
+
+  return await core.getOpenLoans();
+}
+
+export async function initLend() {}

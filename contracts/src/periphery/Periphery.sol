@@ -37,19 +37,17 @@ contract Periphery is PeripheryGov, MediciStructs {
         require(tenor <= maxTenor(), "Loan tenor too long");
         require(loanAmt > 0, "Loan amount must be greater than 0");
 
-        MessageHeader memory header = MessageHeader({
+        PayloadHeader memory header = PayloadHeader({
             payloadID: uint8(1),
-            sender: msg.sender,
-            collateralAddress: _state.collateralAssetAddress,
-            borrowAddress: _state.borrowingAssetAddress
+            sender: msg.sender
         });
 
         wormholeSeq = sendWormholeMessage(
-            encodeBorrowRequestMessage(
-                BorrowRequestMessage({
+            encodeBorrowRequestPayload(
+                BorrowRequestPayload({
                     header: header,
-                    borrowAmount: loanAmt,
-                    totalNormalizedBorrowAmount: loanAmt,
+                    borrowNormalizedAmount: loanAmt,
+                    borrowAddress: _state.borrowingAssetAddress,
                     apr: apr,
                     tenor: tenor
                 })
@@ -58,22 +56,20 @@ contract Periphery is PeripheryGov, MediciStructs {
         emit PeripheryLoanRequest(nonce());
     }
 
-    function initLend(uint256 loanId, uint256 amount) external returns (uint256 wormholeSeq) {
+    function supply(uint256 loanId, uint256 amount) external returns (uint256 wormholeSeq) {
         SafeERC20.safeTransferFrom(collateralToken(), msg.sender, address(this), amount);
 
 
         mToken().mint(msg.sender, amount, 1);
 
-        MessageHeader memory header = MessageHeader({
+        PayloadHeader memory header = PayloadHeader({
             payloadID: uint8(2),
-            sender: msg.sender,
-            collateralAddress: _state.collateralAssetAddress,
-            borrowAddress: _state.borrowingAssetAddress
+            sender: msg.sender
         });
 
         wormholeSeq = sendWormholeMessage(
-            encodeBorrowApproveMessage(
-                BorrowApproveMessage({
+            encodeBorrowApprovePayload(
+                BorrowApprovePayload({
                     header: header,
                     loanId: loanId,
                     approveAmount: amount,
@@ -86,8 +82,8 @@ contract Periphery is PeripheryGov, MediciStructs {
     }
 
     function receiveLoan(bytes calldata encodedVm) external {
-        /// @dev confirms that the message is from Core and valid
-        // parse and verify the wormhole BorrowMessage
+        /// @dev confirms that the payload is from Core and valid
+        // parse and verify the wormhole BorrowRequestPayload
         (
             IWormhole.VM memory parsed,
             bool valid,
@@ -98,11 +94,11 @@ contract Periphery is PeripheryGov, MediciStructs {
         // verify emitter
         require(verifyEmitterVM(parsed), "Invalid emitter");
 
-        require(!getMessageHashes(parsed.hash), "Message already processed");
-        processMessageHash(parsed.hash);
+        require(!getPayloadHashes(parsed.hash), "Payload already processed");
+        processPayloadHash(parsed.hash);
 
         // parse the payload
-        BorrowReceiptMessage memory receipt = decodeBorrowReceiptMessage(parsed.payload);
+        BorrowReceiptPayload memory receipt = decodeBorrowReceiptPayload(parsed.payload);
 
         SafeERC20.safeTransferFrom(collateralToken(), address(this), receipt.recipient, receipt.amount);
     }
