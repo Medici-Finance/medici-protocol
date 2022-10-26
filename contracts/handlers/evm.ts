@@ -121,6 +121,7 @@ export async function registerApp(src: string, target: string, isCore: boolean) 
 
   console.log(targetDeploymentInfo['address']);
   const emitterBuffer = Buffer.from(targetEmitter, 'hex');
+  console.log(emitterBuffer);
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY).connect(
     new ethers.providers.JsonRpcProvider(srcNetwork.rpc)
   );

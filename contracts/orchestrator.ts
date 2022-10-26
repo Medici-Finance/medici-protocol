@@ -179,31 +179,29 @@ medici
   });
 
 // $ all-loans
-medici
-  .command('all-loans')
-  .argument('<core>', 'The core network holding the global state')
-  .action(async (core) => {
-    if (!config.testnet[core]) {
-      console.error(`ERROR: ${core} not found in xdapp.config.json`);
-      return;
+medici.command('all-loans').action(async () => {
+  let core = 'mumbai';
+  if (!config.testnet[core]) {
+    console.error(`ERROR: ${core} not found in xdapp.config.json`);
+    return;
+  }
+
+  let allLoans;
+
+  try {
+    switch (config.testnet[core].type) {
+      case 'evm':
+        allLoans = await evm.getOpenLoans();
+        break;
+      case 'solana':
+        // await solana.submitVaa(src, target, idx);
+        break;
     }
 
-    let allLoans;
-
-    try {
-      switch (config.testnet[core].type) {
-        case 'evm':
-          allLoans = await evm.getOpenLoans(core);
-          break;
-        case 'solana':
-          // await solana.submitVaa(src, target, idx);
-          break;
-      }
-
-      console.log(`Reading open loans state from ${core}: ${JSON.stringify(allLoans)}`);
-    } catch (e) {
-      console.error(`ERROR: ${e}`);
-    }
-  });
+    console.log(`Reading open loans state from ${core}: ${JSON.stringify(allLoans)}`);
+  } catch (e) {
+    console.error(`ERROR: ${e}`);
+  }
+});
 
 medici.parse(process.argv);
