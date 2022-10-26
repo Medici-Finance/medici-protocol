@@ -73,6 +73,7 @@ contract MediciCore is MediciGov {
         address lender = params.header.sender;
         uint256 amount = params.approveAmount;
 
+        // TODO: DAG
         updateRiskDAG(loanId, lender, amount);
         updateLoan(loanId, amount);
 
