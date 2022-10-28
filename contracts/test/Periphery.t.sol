@@ -43,4 +43,5 @@ contract PeripheryTest is BaseTest {
             0x00000000000000000000000067dc5647475b0344c38b347a1808593ef5f56ad6
         );
     }
+
 }

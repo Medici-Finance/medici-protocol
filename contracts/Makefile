@@ -8,7 +8,7 @@ clean  :; forge clean
 # Remove modules
 remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gitmodules && git add . && git commit -m "modules"
 
-install :; forge install smartcontractkit/chainlink-brownie-contracts && forge install rari-capital/solmate && forge install foundry-rs/forge-std
+install :; forge install --all
 
 # Update Dependencies
 update:; forge update
@@ -16,7 +16,7 @@ update:; forge update
 # Build contracts and inject the Poseidon library.
 build:; forge build && node ./test/scripts/generate-circom-lib.js
 
-test :; forge test -vv
+test :; forge test -vvv
 
 snapshot :; forge snapshot
 
@@ -28,8 +28,6 @@ format :; prettier --write src/**/*.sol && prettier --write src/*.sol
 lint :; solhint src/**/*.sol && solhint src/*.sol
 
 anvil :; anvil -m 'test test test test test test test test test test test junk'
-
-build:; @forge build && node ./test/scripts/generate-circom-lib.js
 
 deploy-personhood :; node --no-warnings script/personhood-deploy.js
 
