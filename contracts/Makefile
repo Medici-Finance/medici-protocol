@@ -1,22 +1,48 @@
 -include .env
 
-all: clean remove install update build
+.PHONY: dependencies unit-test forge-test integration-test clean all
+all: build
 
-# Clean the repo
-clean  :; forge clean
+.PHONY: clean
+clean:
+	rm -rf anvil.log node_modules lib out
+
+# check dependencies
+.PHONY: dependencies
+dependencies: forge-install
+
+forge-install:
+	forge install
 
 # Remove modules
 remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gitmodules && git add . && git commit -m "modules"
 
-install :; forge install --all
-
 # Update Dependencies
 update:; forge update
 
-# Build contracts and inject the Poseidon library.
+
+### Local single chain and cross-chain testing
+
+.PHONY: forge-test
+forge-test: dependencies
+	forge test --fork-url ${TESTING_CORE_RPC} -vvv --via-ir
+
+.PHONY: integration-test
+integration-test: dependencies build
+	bash shell-scripts/run_integration_tests.sh
+
+.PHONY: test
+test: forge-test integration-test
+
+### WORLDID INTEGRATION
+
+# Build contracts with worldID and inject the Poseidon library.
 build:; forge build && node ./test/scripts/generate-circom-lib.js
 
-test :; forge test -vvv
+# deploy personhood contracts separately for testing worldID
+deploy-personhood :; node --no-warnings script/personhood-deploy.js
+
+
 
 snapshot :; forge snapshot
 
@@ -29,14 +55,7 @@ lint :; solhint src/**/*.sol && solhint src/*.sol
 
 anvil :; anvil -m 'test test test test test test test test test test test junk'
 
-deploy-personhood :; node --no-warnings script/personhood-deploy.js
 
-# use the "@" to hide the command from your shell
-deploy-rinkeby :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${RINKEBY_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY}  -vvvv
-
-verify-contract :; forge verify-contract --chain-id 80001 --num-of-optimizations 10000 --constructor-args \
-    $(cast abi-encode "constructor(ERC20,address,address, uint256,uint256)" "HOW?" "FUSD" 90 200000000000000000) \
-    --compiler-version v0.8.15+commit.e14f2714 <the_contract_address> src/MyToken.sol:MyToken ${POLYSCAN_API_KEY}
 
 deploy-testnet :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast -vvvv --etherscan-api-key ${ETHERSCAN_API_KEY} \
     --verify
@@ -45,7 +64,3 @@ deploy-testnet :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc
 deploy-anvil :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url http://localhost:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
 
 deploy-all :; make deploy-${network} contract=MediciPool && make deploy-${network} contract=KeepersCounter && make deploy-${network} contract=PriceFeedConsumer && make deploy-${network} contract=VRFConsumerV2
-
-deploy-export :; make deploy-${network} contract=${contract} && cp ./out/${contract}.sol/${contract}.json ../frontend/src/sdk/abi/${contract}.abi.json
-
-deploy-export-all :; make deploy-all network=testnet

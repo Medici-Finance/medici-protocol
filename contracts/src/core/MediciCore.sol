@@ -22,6 +22,7 @@ contract MediciCore is MediciGov {
         /// @dev confirms that the payload is from Periphery and valid
         // parse and verify the wormhole BorrowRequestPayload
         (IWormhole.VM memory parsed, bool valid, string memory reason) = wormhole().parseAndVerifyVM(encodedVm);
+        console.log("Parsed");
         require(valid, reason);
 
         require(valid, reason);

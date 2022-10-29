@@ -1,5 +1,4 @@
 pragma solidity 0.8.15;
-
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Script.sol";
@@ -12,7 +11,7 @@ import "../src/core/MediciCore.sol";
 import "../src/MediciStructs.sol";
 
 contract CoreTest is BaseTest, MediciStructs {
-    using stdJson for string;
+    // using stdJson for string;
 
     LocalConfig config;
     MediciCore core;
@@ -36,7 +35,15 @@ contract CoreTest is BaseTest, MediciStructs {
     // tenor - 5184000 (60 days)
     // max apr - 200000000000000000 (20e16)
     // amount - 2000000000 (2000e6)
-    bytes alice_loan = "0x01000000000100a5e9a1794c4583b8fb16bc6a9e22b4bca742de06e93b1f3c42618d8093b1d6680bf982995d5e2355ba67c12ab2617a3ed60000ece7bb999d9188bcf6dea2c7e10063549ad4000000000002000000000000000000000000775fbc57de090a99ba17aff3a71002890e3ec4270000000000000000c8019b342ea9775950b39b522a35c91970b46f5a91840000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004f1a0000000000000000000000000000000000000000000000000002c68af0bb140000";
+
+    bytes alice_loan = '\x01\x00\x00\x00\x00\x01\x00\xa5\xe9\xa1\x79\x4c\x45\x83\xb8\xfb\x16\xbc\x6a\x9e\x22\xb4\xbc\xa7\x42\xde\x06\xe9\x3b\x1f\x3c\x42\x61\x8d\x80\x93\xb1\xd6\x68\x0b\xf9\x82\x99\x5d\x5e\x23\x55\xba\x67\xc1\x2a\xb2\x61\x7a\x3e\xd6\x00\x00\xec\xe7\xbb\x99\x9d\x91\x88\xbc\xf6\xde\xa2\xc7\xe1\x00\x63\x54\x9a\xd4\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x77\x5f\xbc\x57\xde\x09\x0a\x99\xba\x17\xaf\xf3\xa7\x10\x02\x89\x0e\x3e\xc4\x27\x00\x00\x00\x00\x00\x00\x00\x00\xc8\x01\x9b\x34\x2e\xa9\x77\x59\x50\xb3\x9b\x52\x2a\x35\xc9\x19\x70\xb4\x6f\x5a\x91\x84\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x77\x35\x94\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x4f\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xc6\x8a\xf0\xbb\x14\x00\x00';
+
+    // bytes alice_loan = 0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef;
+
+    // bytes alice_loan = new bytes(32);
+    // assembly {
+    //     mstore(add(b, 32), 0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef)
+    // }
 
     function setUp() public {
         config = new LocalConfig();
@@ -48,7 +55,11 @@ contract CoreTest is BaseTest, MediciStructs {
         );
     }
 
-    function testDeploy() public {
+    function testExample() internal {
+        assertTrue(true);
+    }
+
+    function testDeploy() internal {
         core.registerChain(2, GOERLI_PERI_BUFF);
         console.logBytes32(GOERLI_PERI_BUFF);
     }
@@ -60,6 +71,8 @@ contract CoreTest is BaseTest, MediciStructs {
     }
 
     function testSanity_loanRequest() public {
+        // console.log(alice_loan.length);
+        console.logBytes(alice_loan);
         core.initLoan(alice_loan);
 
     }

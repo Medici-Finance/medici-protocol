@@ -10,7 +10,7 @@ import {BaseTest} from "../src/helpers/BaseTest.sol";
 
 import "../src/MediciStructs.sol";
 
-contract CoreTest is BaseTest, MediciStructs {
+contract WormholeTest is BaseTest, MediciStructs {
     using stdJson for string;
 
 
