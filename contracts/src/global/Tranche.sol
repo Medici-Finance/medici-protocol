@@ -24,7 +24,7 @@ contract Tranche is ERC20Permit, ITranche {
     function supply(
         uint256 amount_,
         uint256 loanId,
-        uint16 chainID,
+        // uint16 chainID,
         address borrower
     ) external override returns (uint256) {
         // Transfer the underlying to the periphery contract holding liquidity for every chain
@@ -32,12 +32,15 @@ contract Tranche is ERC20Permit, ITranche {
         // Now that we have funded the supply we can call
         // the prefunded supply
         // supply callback
-        return  periphery.enrichLoanCallback(
-            amount_,
-            loanId,
-            chainID,
-            borrower
-        );
+
+
+        // TODO: wormhole action
+        // return  periphery.enrichLoanCallback(
+        //     amount_,
+        //     loanId,
+        //     chainID,
+        //     borrower
+        // );
 
     }
 
@@ -52,7 +55,7 @@ contract Tranche is ERC20Permit, ITranche {
         require(block.timestamp < unlockTimestamp, "expired");
 
         // TODO: check wormhole loan recipt on callback
-        (uint256 shares, ) = periphery.checkLoanReceiptCallback(xData);
+        // (uint256 shares, ) = periphery.checkLoanReceiptCallback(xData);
 
         _mint(msg.sender, shares);
 

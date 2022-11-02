@@ -54,6 +54,22 @@ contract MediciCore is MediciGov {
         emit LoanCreated(getLoanID() - 1);
     }
 
+    function initLoan(bytes calldata payload, bool xChain) external returns (bool) {
+        BorrowRequestPayload memory params = decodeBorrowRequestPayload(payload);
+        bytes memory wBorrower = encodeWAddress(params.header.sender);
+        uint256 worldID = ph.getPerson(wBorrower);
+
+        Loan memory loan = Loan({
+            borrower: wBorrower,
+            worldID: worldID,
+            principal: params.borrowNormalizedAmount,
+            pending: 0,
+            tenor: params.tenor,
+            apr: params.apr
+        });
+        return true;
+    }
+
     function updateLoanReceipt(bytes memory encodedVm) external returns (uint256 wormholeSeq){
         // parse and verify the wormhole BorrowPayload
         (
